@@ -1,0 +1,231 @@
+"""FiFAR: real fraud alerts, real model scores, and fifty fallible human reviewers.
+
+Feedzai's Financial Fraud Alert Review dataset (Nature Scientific Data, April 2025)
+records, for each of 30,622 real bank-account-fraud alerts, what each of fifty
+synthetic-but-calibrated analysts *would have decided*. That is the property that
+makes it worth building on: routing a case to a human is an exact table lookup, not
+a model of a human, so there is no counterfactual to impute and no selective-labels
+confound in the reviewer channel. The human is also wrong sometimes, and the pattern
+of their wrongness is part of the data.
+
+What the shipped testbed does **not** contain is a sequential problem, and this
+matters enough to state plainly:
+
+* each of the 25 test scenarios is a **single batch** of 4,457 alerts
+* that batch carries 4,052 review slots across 10 active analysts, which is
+  **90.9% of the alerts**
+* the 25 training scenarios have 7 variable-size batches (400 to 5,000 alerts) with
+  review capacity equal to **100%** of the alerts
+
+So in FiFAR as published there is no horizon to hold capacity back across, and the
+constraint is nearly slack. That is exactly why the dataset's own baseline, DeCCaF,
+solves each batch to optimality with constraint programming and does well: there is
+no intertemporal structure left to exploit.
+
+This module therefore keeps everything real (alerts, scores, labels, analyst
+decisions, batch structure) and exposes **capacity tightness as a swept parameter**,
+because that is the axis along which a sequential policy can or cannot earn
+anything. The measured question becomes: below what capacity ratio does spending
+capacity sequentially beat spending it evenly, and is FiFAR's own 91% inside that
+region or outside it. A finding of "outside, so one-shot assignment is correct here"
+is a result about the benchmark, not a failed experiment.
+
+Data: https://doi.org/10.6084/m9.figshare.28351172 (CC BY). Run
+``scripts/fetch_fifar.py`` to download and verify it.
+"""
+
+from __future__ import annotations
+
+import pathlib
+from dataclasses import dataclass
+
+import numpy as np
+
+CACHE = pathlib.Path.home() / ".cache" / "auditgym"
+ROOT_NAMES = ("fifar/FiFAR", "FiFAR")
+# measured from the shipped files; asserted by tests so a different release is noticed
+N_ALERTS = 30622
+N_EXPERTS = 50
+TEST_BATCH_SIZE = 4457
+TEST_CAPACITY = 4052
+
+FEATURE_DROP = ("fraud_bool", "month")
+
+
+def _root(path: str | pathlib.Path | None = None) -> pathlib.Path:
+    if path is not None:
+        p = pathlib.Path(path).expanduser()
+        if (p / "synthetic_experts").exists():
+            return p
+        raise FileNotFoundError(f"no FiFAR layout under {p}")
+    for name in ROOT_NAMES:
+        p = CACHE / name
+        if (p / "synthetic_experts").exists():
+            return p
+    raise FileNotFoundError(f"FiFAR not found under {CACHE}. Run scripts/fetch_fifar.py first.")
+
+
+@dataclass
+class FifarData:
+    """The whole dataset, as arrays, with alert rows aligned across every table."""
+
+    x: np.ndarray  # (n, d) numeric alert features, model_score included
+    y: np.ndarray  # (n,) ground-truth fraud label
+    score: np.ndarray  # (n,) the deployed model's alert score
+    expert: np.ndarray  # (n, 50) what each analyst would have decided
+    month: np.ndarray  # (n,) month index, for drift-ordered variants
+    case_id: np.ndarray  # (n,) FiFAR case identifier
+    expert_names: list[str]
+
+    @property
+    def n(self) -> int:
+        return len(self.y)
+
+    def expert_error_rates(self) -> np.ndarray:
+        """Per-analyst (false negative rate, false positive rate)."""
+        out = np.zeros((self.expert.shape[1], 2))
+        pos, neg = self.y == 1, self.y == 0
+        for j in range(self.expert.shape[1]):
+            out[j, 0] = float((self.expert[pos, j] == 0).mean()) if pos.any() else 0.0
+            out[j, 1] = float((self.expert[neg, j] == 1).mean()) if neg.any() else 0.0
+        return out
+
+
+def load(path: str | pathlib.Path | None = None) -> FifarData:
+    """Load and align the alert table, the model scores and the expert decisions."""
+    import pandas as pd
+
+    r = _root(path)
+    alerts = pd.read_parquet(r / "alert_data" / "processed_data" / "alerts.parquet")
+    experts = pd.read_parquet(r / "synthetic_experts" / "expert_predictions.parquet")
+    # the expert table is indexed by case_id and covers exactly the alert rows
+    experts = experts.reindex(alerts.index)
+    if experts.isna().to_numpy().any():
+        raise ValueError("expert predictions do not cover every alert row")
+
+    y = alerts["fraud_bool"].to_numpy().astype(int)
+    month = alerts["month"].to_numpy().astype(int)
+    score = alerts["model_score"].to_numpy().astype(float)
+    feat = alerts.drop(columns=[c for c in FEATURE_DROP if c in alerts.columns])
+    # categorical columns are few and low-cardinality; one-hot keeps trees happy
+    x = pd.get_dummies(feat, drop_first=False).to_numpy().astype(np.float32)
+    return FifarData(
+        x=x,
+        y=y,
+        score=score,
+        expert=experts.to_numpy().astype(int),
+        month=month,
+        case_id=alerts.index.to_numpy(),
+        expert_names=list(experts.columns),
+    )
+
+
+@dataclass
+class Scenario:
+    """A batch schedule and the review capacity available in each batch."""
+
+    batches: list[np.ndarray]  # row indices into FifarData, one array per batch
+    capacity: np.ndarray  # (n_batches, n_experts) review slots
+    name: str
+
+    @property
+    def n_batches(self) -> int:
+        return len(self.batches)
+
+    @property
+    def total_capacity(self) -> int:
+        return int(self.capacity.sum())
+
+    @property
+    def total_alerts(self) -> int:
+        return int(sum(len(b) for b in self.batches))
+
+    @property
+    def capacity_ratio(self) -> float:
+        return self.total_capacity / max(self.total_alerts, 1)
+
+
+def load_scenario(
+    data: FifarData,
+    name: str = "shuffle_1#team_1",
+    split: str = "train_alert",
+    path: str | pathlib.Path | None = None,
+    capacity_ratio: float | None = None,
+) -> Scenario:
+    """Load one shipped scenario, optionally rescaling its capacity.
+
+    ``capacity_ratio`` replaces the shipped capacity with the given fraction of each
+    batch's size, spread over the analysts the scenario actually activates. The
+    shipped ratios are 1.00 for training scenarios and 0.909 for test scenarios,
+    which leaves a sequential policy almost nothing to decide, so a sweep over this
+    is the experiment rather than a convenience.
+    """
+    import pandas as pd
+
+    r = _root(path)
+    d = r / "testbed" / split / name
+    b = pd.read_csv(d / "batches.csv")
+    cap = pd.read_csv(d / "capacity.csv")
+    expert_cols = [c for c in cap.columns if c in set(data.expert_names)]
+    col_index = {c: i for i, c in enumerate(data.expert_names)}
+
+    pos = {cid: i for i, cid in enumerate(data.case_id)}
+    missing = [c for c in b["case_id"].to_numpy() if c not in pos]
+    if missing:
+        raise ValueError(f"{len(missing)} scenario case_ids are absent from the alert table")
+
+    batch_ids = sorted(b["batch"].unique().tolist())
+    batches = [
+        np.asarray([pos[c] for c in b.loc[b["batch"] == bid, "case_id"]], dtype=int)
+        for bid in batch_ids
+    ]
+
+    capacity = np.zeros((len(batches), len(data.expert_names)), dtype=int)
+    for row_i, bid in enumerate(batch_ids):
+        row = (
+            cap.loc[cap["batch_id"] == bid] if "batch_id" in cap.columns else cap.iloc[[row_i]]
+        )
+        if len(row) == 0:
+            continue
+        for c in expert_cols:
+            capacity[row_i, col_index[c]] = int(row[c].iloc[0])
+
+    if capacity_ratio is not None:
+        active = np.where(capacity.sum(axis=0) > 0)[0]
+        if len(active) == 0:  # a scenario with no shipped capacity: use the first ten
+            active = np.arange(min(10, capacity.shape[1]))
+        capacity = np.zeros_like(capacity)
+        for row_i, idx in enumerate(batches):
+            total = int(round(capacity_ratio * len(idx)))
+            share = np.full(len(active), total // len(active), dtype=int)
+            share[: total % len(active)] += 1
+            capacity[row_i, active] = share
+
+    return Scenario(batches=batches, capacity=capacity, name=f"{split}/{name}")
+
+
+def describe(path: str | pathlib.Path | None = None) -> str:
+    """Summarise the shipped scenarios, including how slack their capacity is."""
+    import pandas as pd
+
+    r = _root(path)
+    lines = []
+    for split in ("train_alert", "test"):
+        d = r / "testbed" / split
+        if not d.exists():
+            continue
+        rows = []
+        for p in sorted(d.iterdir()):
+            b = pd.read_csv(p / "batches.csv")
+            c = pd.read_csv(p / "capacity.csv")
+            ec = [x for x in c.columns if x.startswith("standard#")]
+            tot = int(c[ec].to_numpy().sum())
+            rows.append((p.name, b["batch"].nunique(), len(b), tot, tot / max(len(b), 1)))
+        lines.append(f"{split}: {len(rows)} scenarios")
+        nb = {x[1] for x in rows}
+        ratios = [x[4] for x in rows]
+        lines.append(
+            f"  batches per scenario: {sorted(nb)}   "
+            f"capacity ratio: {min(ratios):.3f} to {max(ratios):.3f}"
+        )
+    return "\n".join(lines)

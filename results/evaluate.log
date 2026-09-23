@@ -1,0 +1,28 @@
+  ...5/20 drift seeds
+  ...10/20 drift seeds
+  ...15/20 drift seeds
+  ...20/20 drift seeds
+held-out drift seeds 500..519, 10% budget, 20 episodes
+policy                                  overall      pre     post               vs top-k     P
+ppo                          0.608 [0.570,0.647]    0.941    0.134 +0.010 [+0.001,+0.025]  0.59
+top-k                        0.579 [0.539,0.631]    0.953    0.071            (reference)  0.50
+eps-explore(0.15)            0.590 [0.542,0.640]    0.924    0.117 -0.005 [-0.021,+0.015]  0.51
+eps-explore(0.35)            0.553 [0.496,0.610]    0.856    0.132 -0.040 [-0.073,-0.005]  0.39
+eps-explore(0.6)             0.455 [0.401,0.526]    0.694    0.164 -0.130 [-0.177,-0.069]  0.22
+yield-triggered(drop=0.5)    0.582 [0.556,0.613]    0.921    0.115 +0.016 [-0.007,+0.031]  0.51
+oracle ceiling                            0.975
+
+zero-shot on Elliptic: 15 rounds, break at round 8, 1,083 illicit
+policy                         overall      pre     post  spread over policy seeds
+ppo                              0.718    0.843    0.043  0.714 to 0.722
+top-k                            0.730    0.851    0.077  0.730 to 0.730
+eps-explore(0.15)                0.720    0.837    0.089  0.717 to 0.724
+eps-explore(0.35)                0.713    0.803    0.223  0.693 to 0.726
+eps-explore(0.6)                 0.690    0.714    0.560  0.679 to 0.703
+yield-triggered(drop=0.5)        0.712    0.801    0.231  0.694 to 0.739
+oracle ceiling                   1.000    1.000    1.000
+
+One trajectory. The spread is over the policy's own randomness and is
+not a confidence interval over episodes.
+
+wrote results/evaluation.json

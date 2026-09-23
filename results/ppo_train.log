@@ -1,0 +1,47 @@
+update   0  recall 0.316  entropy 3.207  kl 0.0348  38s
+update   1  recall 0.405  entropy 3.199  kl 0.0287  69s
+update   2  recall 0.368  entropy 3.164  kl 0.1211  106s
+update   3  recall 0.383  entropy 3.145  kl 0.0549  139s
+update   4  recall 0.385  entropy 3.140  kl 0.0239  172s
+update   5  recall 0.417  entropy 3.104  kl 0.0031  204s
+update   6  recall 0.399  entropy 3.074  kl 0.0601  241s
+update   7  recall 0.447  entropy 3.019  kl 0.0262  276s
+update   8  recall 0.480  entropy 2.983  kl 0.0498  306s
+update   9  recall 0.519  entropy 2.978  kl 0.0715  334s
+update  10  recall 0.469  entropy 2.835  kl 0.0707  361s
+update  11  recall 0.492  entropy 2.893  kl 0.0214  390s
+update  12  recall 0.482  entropy 2.778  kl 0.0907  418s
+update  13  recall 0.575  entropy 2.705  kl 0.0678  446s
+update  14  recall 0.546  entropy 2.668  kl 0.0619  475s
+update  15  recall 0.545  entropy 2.514  kl 0.0550  502s
+update  16  recall 0.537  entropy 2.536  kl 0.0430  530s
+update  17  recall 0.578  entropy 2.500  kl 0.0332  561s
+update  18  recall 0.576  entropy 2.337  kl 0.0698  589s
+update  19  recall 0.522  entropy 2.429  kl 0.1230  617s
+update  20  recall 0.499  entropy 2.511  kl 0.0577  646s
+update  21  recall 0.567  entropy 2.397  kl 0.0396  672s
+update  22  recall 0.501  entropy 2.485  kl 0.0490  697s
+update  23  recall 0.492  entropy 2.521  kl 0.0335  723s
+update  24  recall 0.590  entropy 2.385  kl 0.0151  750s
+update  25  recall 0.573  entropy 2.209  kl 0.0325  779s
+update  26  recall 0.615  entropy 1.980  kl 0.0866  811s
+update  27  recall 0.568  entropy 2.043  kl 0.0034  843s
+update  28  recall 0.566  entropy 2.101  kl 0.0564  873s
+update  29  recall 0.611  entropy 2.143  kl 0.0275  904s
+update  30  recall 0.622  entropy 1.887  kl 0.0597  932s
+update  31  recall 0.524  entropy 2.176  kl 0.0544  962s
+update  32  recall 0.622  entropy 2.241  kl 0.1000  994s
+update  33  recall 0.601  entropy 1.974  kl 0.1027  1022s
+update  34  recall 0.605  entropy 1.978  kl 0.0767  1052s
+update  35  recall 0.519  entropy 2.028  kl 0.0614  1081s
+update  36  recall 0.592  entropy 1.782  kl 0.0128  1110s
+update  37  recall 0.658  entropy 2.069  kl 0.1082  1139s
+update  38  recall 0.591  entropy 1.704  kl 0.0203  1168s
+update  39  recall 0.590  entropy 1.693  kl 0.0076  1197s
+
+saved results/ppo.pt
+
+held-out drift seeds (not used in training):
+  ppo                        recall 0.596 +/- 0.079
+  top-k                      recall 0.570 +/- 0.098
+  yield-triggered(drop=0.5)  recall 0.594 +/- 0.085

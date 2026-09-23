@@ -182,7 +182,7 @@ class PPO:
 
 
 class PPOPolicy:
-    """Wraps a trained network so it plugs into ``auditgym.policies.rollout``."""
+    """Wraps a trained network so it plugs into ``caseload.policies.rollout``."""
 
     def __init__(self, net: ActorCritic, greedy: bool = True, name: str = "ppo") -> None:
         self.net = net

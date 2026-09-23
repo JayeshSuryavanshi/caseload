@@ -160,7 +160,7 @@ def _safe_std(a: np.ndarray) -> float:
 class InvestigationMDP:
     """The environment core, free of any RL framework.
 
-    ``gymnasium`` wrappers live in :mod:`auditgym.envs`; keeping the mechanics here
+    ``gymnasium`` wrappers live in :mod:`caseload.envs`; keeping the mechanics here
     means the baselines and the tests do not need gymnasium at all.
     """
 

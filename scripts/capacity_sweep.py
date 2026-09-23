@@ -23,9 +23,9 @@ import pathlib
 
 import numpy as np
 
-from auditgym.envs import fifar
-from auditgym.evaluation import bootstrap_interval, paired_difference
-from auditgym.triage import BAND_GRID, PACE_GRID, TriageConfig, TriageMDP
+from caseload.envs import fifar
+from caseload.evaluation import bootstrap_interval, paired_difference
+from caseload.triage import BAND_GRID, PACE_GRID, TriageConfig, TriageMDP
 
 EVEN = PACE_GRID.index(1.0)
 

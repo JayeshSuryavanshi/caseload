@@ -115,7 +115,7 @@ class YieldTriggered:
         self._bad = 0
 
     def act(self, obs: np.ndarray) -> tuple[int, int]:
-        # obs layout is fixed by auditgym.mdp.OBS_NAMES
+        # obs layout is fixed by caseload.mdp.OBS_NAMES
         yield_last, yield_ma3 = float(obs[8]), float(obs[9])
         self._best = max(self._best, yield_ma3)
         collapsed = self._best > 0 and yield_last < self.drop * self._best

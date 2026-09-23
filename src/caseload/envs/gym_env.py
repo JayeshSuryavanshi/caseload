@@ -1,6 +1,6 @@
 """Gymnasium wrapper.
 
-Kept separate from :mod:`auditgym.mdp` so the baselines, tests and the Elliptic
+Kept separate from :mod:`caseload.mdp` so the baselines, tests and the Elliptic
 measurement scripts never import gymnasium. The environment core is a plain object
 with ``reset`` and ``step``; this only adds spaces and the five-tuple contract.
 """

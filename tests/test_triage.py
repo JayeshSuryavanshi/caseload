@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from auditgym.triage import (
+from caseload.triage import (
     BAND_GRID,
     OBS_DIM,
     PACE_GRID,
@@ -12,7 +12,7 @@ from auditgym.triage import (
     _pick,
 )
 
-fifar = pytest.importorskip("auditgym.envs.fifar")
+fifar = pytest.importorskip("caseload.envs.fifar")
 pytest.importorskip("pandas")
 
 

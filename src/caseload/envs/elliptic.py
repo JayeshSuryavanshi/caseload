@@ -18,7 +18,7 @@ nothing. That is left in deliberately, because it is what the operational proble
 actually looks like.
 
 The parsed archive is expected at ``~/.cache/graphspot/elliptic_parsed.npz`` or
-``~/.cache/auditgym/elliptic_parsed.npz`` with arrays ``x``, ``node_time``,
+``~/.cache/caseload/elliptic_parsed.npz`` with arrays ``x``, ``node_time``,
 ``labels``, ``src``, ``dst``. See ``scripts/fetch_elliptic.py``.
 """
 
@@ -30,7 +30,8 @@ import numpy as np
 
 from ..mdp import Episode, Round
 
-CACHE_NAMES = ("auditgym", "graphspot")
+# "auditgym" is this package's former name; keep reading archives placed there
+CACHE_NAMES = ("caseload", "auditgym", "graphspot")
 ARCHIVE = "elliptic_parsed.npz"
 # the documented regime break, as a time step in the dataset's own numbering
 BREAK_TIME = 43

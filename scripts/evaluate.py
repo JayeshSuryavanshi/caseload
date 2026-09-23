@@ -21,7 +21,7 @@ import pathlib
 import numpy as np
 import torch
 
-from auditgym import (
+from caseload import (
     EpsilonExplore,
     GradientBoostScorer,
     InvestigationMDP,
@@ -30,9 +30,9 @@ from auditgym import (
     oracle_ceiling,
     rollout,
 )
-from auditgym.agents.ppo import ActorCritic, PPOPolicy
-from auditgym.envs import DriftConfig, make_episode
-from auditgym.evaluation import (
+from caseload.agents.ppo import ActorCritic, PPOPolicy
+from caseload.envs import DriftConfig, make_episode
+from caseload.evaluation import (
     bootstrap_interval,
     paired_difference,
     probability_of_improvement,
@@ -126,7 +126,7 @@ def main() -> None:
 
     # zero-shot transfer to the real regime break
     try:
-        from auditgym.envs.elliptic import load_episode
+        from caseload.envs.elliptic import load_episode
 
         ep, b = load_episode()
         print(

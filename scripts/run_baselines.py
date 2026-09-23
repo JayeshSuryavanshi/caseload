@@ -17,7 +17,7 @@ import time
 
 import numpy as np
 
-from auditgym import (
+from caseload import (
     EpsilonExplore,
     GradientBoostScorer,
     InvestigationMDP,
@@ -28,8 +28,8 @@ from auditgym import (
     oracle_ceiling,
     rollout,
 )
-from auditgym.envs import DriftConfig, make_episode
-from auditgym.evaluation import table
+from caseload.envs import DriftConfig, make_episode
+from caseload.evaluation import table
 
 
 def policies() -> list:
@@ -76,7 +76,7 @@ def run_drift(seeds: int, budget: float, rounds: int, out: pathlib.Path | None) 
 
 
 def run_elliptic(budget: float, out: pathlib.Path | None) -> None:
-    from auditgym.envs.elliptic import load_episode
+    from caseload.envs.elliptic import load_episode
 
     ep, b = load_episode()
     print(

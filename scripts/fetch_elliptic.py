@@ -22,7 +22,7 @@ CSVS = (
     "elliptic_txs_classes.csv",
     "elliptic_txs_edgelist.csv",
 )
-TARGET = pathlib.Path.home() / ".cache" / "auditgym" / "elliptic_parsed.npz"
+TARGET = pathlib.Path.home() / ".cache" / "caseload" / "elliptic_parsed.npz"
 ALSO = pathlib.Path.home() / ".cache" / "graphspot" / "elliptic_parsed.npz"
 
 

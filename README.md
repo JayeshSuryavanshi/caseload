@@ -1,4 +1,4 @@
-# auditgym
+# caseload
 
 Reinforcement learning environments for **budgeted fraud investigation**: deciding where to point scarce human attention, and when, while the thing you are hunting moves.
 
@@ -8,7 +8,7 @@ Every number below is produced by a script in this repository. Where a result is
 
 ---
 
-## 1. Selective labels under a regime break (`auditgym.envs.drift`, `auditgym.envs.elliptic`)
+## 1. Selective labels under a regime break (`caseload.envs.drift`, `caseload.envs.elliptic`)
 
 Investigating a case reveals its label. Nothing else does. So the detector is only ever retrained on cases somebody chose to look at, and a policy that always spends its budget on the highest-scoring cases stops learning the moment the fraud population moves, and never finds out that it has.
 
@@ -47,7 +47,7 @@ Reproduce with `python scripts/run_baselines.py --seeds 30`.
 
 ### Training on drift, evaluating on the real break
 
-Elliptic has one regime break, so it is one trajectory and a policy fitted to it has memorised it. Policies train on `auditgym.envs.drift`, which draws random break positions and fraud-mode geometry, and are evaluated zero-shot on the real break.
+Elliptic has one regime break, so it is one trajectory and a policy fitted to it has memorised it. Policies train on `caseload.envs.drift`, which draws random break positions and fraud-mode geometry, and are evaluated zero-shot on the real break.
 
 Building that simulator took one correction worth recording. My first version let top-k self-heal to 27.7% post-break recall, nothing like Elliptic's seven zeros, because the new fraud mode landed somewhere the old detector still scored middling, so exploit picks stumbled into it and fed the refit. The break is now **adversarial**: candidate fraud modes are screened against a detector fitted on pre-break traffic and the lowest-scoring are chosen. That reproduces the real collapse, and it is also the more realistic story, since an adversary who adapts moves to where the current model is not looking.
 
@@ -96,7 +96,7 @@ policy even on Elliptic, and the current state of the art on it is a one-line he
 
 ---
 
-## 2. Capacity-constrained triage on FiFAR (`auditgym.envs.fifar`, `auditgym.triage`)
+## 2. Capacity-constrained triage on FiFAR (`caseload.envs.fifar`, `caseload.triage`)
 
 Feedzai's FiFAR (Nature Scientific Data, April 2025) records, for each of 30,622 real bank-account-fraud alerts, what each of **50 analysts would have decided**. Routing to a human is an exact table lookup, not a model of a human, and the human is fallible in measured, heterogeneous ways: analyst false-negative rates run 0.015 to 0.312, false-positive rates 0.015 to 0.759.
 
@@ -142,9 +142,9 @@ Recorded because each would have produced a confident wrong headline, and the th
 ## Install
 
 ```bash
-pip install auditgym                # environments and baselines
-pip install "auditgym[agents]"      # adds torch for the learned policies
-pip install "auditgym[fifar]"       # adds pandas/pyarrow for the FiFAR loader
+pip install caseload                # environments and baselines
+pip install "caseload[agents]"      # adds torch for the learned policies
+pip install "caseload[fifar]"       # adds pandas/pyarrow for the FiFAR loader
 ```
 
 ## Reproducing
@@ -165,7 +165,7 @@ python scripts/evaluate.py           # zero-shot transfer to Elliptic
 
 **Ceilings, not just baselines.** Recall under a budget is meaningless without knowing what was achievable, so `oracle_ceiling` reports what a perfect ranker would have caught with the same budget and every policy is read as a fraction of it.
 
-**Intervals, always.** `auditgym.evaluation` provides interquartile mean and stratified bootstrap intervals following `rliable` (Agarwal et al., NeurIPS 2021), plus **paired** differences, because episode difficulty varies far more than the gap between policies.
+**Intervals, always.** `caseload.evaluation` provides interquartile mean and stratified bootstrap intervals following `rliable` (Agarwal et al., NeurIPS 2021), plus **paired** differences, because episode difficulty varies far more than the gap between policies.
 
 ## Related work
 

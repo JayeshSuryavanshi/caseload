@@ -18,9 +18,9 @@ import time
 import numpy as np
 import torch
 
-from auditgym import GradientBoostScorer, InvestigationMDP, TopK, YieldTriggered, rollout
-from auditgym.agents.ppo import PPO, Batch, PPOConfig, PPOPolicy
-from auditgym.envs import DriftConfig, make_episode
+from caseload import GradientBoostScorer, InvestigationMDP, TopK, YieldTriggered, rollout
+from caseload.agents.ppo import PPO, Batch, PPOConfig, PPOPolicy
+from caseload.envs import DriftConfig, make_episode
 
 
 def collect(

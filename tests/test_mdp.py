@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from auditgym import (
+from caseload import (
     EXPLORE_GRID,
     OBS_DIM,
     PACE_GRID,
@@ -18,7 +18,7 @@ from auditgym import (
     oracle_ceiling,
     rollout,
 )
-from auditgym.envs import DriftConfig, make_episode
+from caseload.envs import DriftConfig, make_episode
 
 
 def tiny_episode(seed: int = 0, n_rounds: int = 6, n: int = 120) -> Episode:

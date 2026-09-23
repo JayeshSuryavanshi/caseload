@@ -41,7 +41,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-CACHE = pathlib.Path.home() / ".cache" / "auditgym"
+CACHE = pathlib.Path.home() / ".cache" / "caseload"
+# this package was briefly called auditgym; keep reading downloads placed there
+LEGACY_CACHES = (pathlib.Path.home() / ".cache" / "auditgym",)
 ROOT_NAMES = ("fifar/FiFAR", "FiFAR")
 # measured from the shipped files; asserted by tests so a different release is noticed
 N_ALERTS = 30622
@@ -58,10 +60,11 @@ def _root(path: str | pathlib.Path | None = None) -> pathlib.Path:
         if (p / "synthetic_experts").exists():
             return p
         raise FileNotFoundError(f"no FiFAR layout under {p}")
-    for name in ROOT_NAMES:
-        p = CACHE / name
-        if (p / "synthetic_experts").exists():
-            return p
+    for base in (CACHE, *LEGACY_CACHES):
+        for name in ROOT_NAMES:
+            p = base / name
+            if (p / "synthetic_experts").exists():
+                return p
     raise FileNotFoundError(f"FiFAR not found under {CACHE}. Run scripts/fetch_fifar.py first.")
 
 

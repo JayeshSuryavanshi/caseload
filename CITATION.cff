@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "auditgym: reinforcement learning environments for budgeted fraud investigation"
+title: "caseload: reinforcement learning environments for budgeted fraud investigation"
 message: "If you use this software, please cite it."
 type: software
 authors:
@@ -7,7 +7,7 @@ authors:
     given-names: Jayesh
 version: 0.1.0
 license: BSD-3-Clause
-repository-code: "https://github.com/JayeshSuryavanshi/auditgym"
+repository-code: "https://github.com/JayeshSuryavanshi/caseload"
 keywords:
   - reinforcement-learning
   - fraud-detection

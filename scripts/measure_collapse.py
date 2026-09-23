@@ -15,7 +15,7 @@ import numpy as np
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from auditgym.envs.elliptic import BREAK_TIME, load_raw
+from caseload.envs.elliptic import BREAK_TIME, load_raw
 
 
 def top_k_recall(scores: np.ndarray, y: np.ndarray, budget_frac: float) -> tuple[int, int, int]:

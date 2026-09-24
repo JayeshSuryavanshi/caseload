@@ -139,6 +139,37 @@ Recorded because each would have produced a confident wrong headline, and the th
 
 ---
 
+## Reporting rules
+
+Four results in this repository were wrong before they were right, and each was caught by
+one of these. They are in the README because they are easy to skip when a run finishes and
+the number looks good.
+
+- **Never report a mean without an interval.** `caseload.evaluation` gives interquartile
+  mean with a stratified bootstrap, and **paired** differences, because episode difficulty
+  varies far more than the gap between policies.
+- **Always report against the oracle ceiling.** Recall under a budget means nothing without
+  knowing what was achievable with that budget.
+- **The opponent is `yield-triggered`, not `random`.** Beating random proves nothing here.
+  The hand-written adaptive rule is the bar, and PPO has not cleared it.
+- **Elliptic is one trajectory.** Its numbers are a spread over policy randomness, never a
+  confidence interval over episodes.
+- **Never train on Elliptic.** One regime break is one episode, so a policy fitted to it has
+  memorised it. Training seeds live in a range disjoint from the evaluation seeds.
+
+## Running many seeds
+
+The environment refits a scikit-learn ensemble every round, so this is CPU-bound and
+scales with cores rather than with a GPU. One single-threaded process per seed is
+**2.3x faster per update** than one process using every core (13 s against 30 s measured on
+an M1 Pro), because the refits otherwise oversubscribe threads and fight each other.
+
+```bash
+./scripts/run_fleet.sh 6 200           # 6 seeds in parallel, 200 updates each
+./scripts/evaluate_fleet.sh
+./.venv/bin/python scripts/aggregate_fleet.py results/fleet
+```
+
 ## Install
 
 ```bash

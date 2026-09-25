@@ -79,11 +79,11 @@ class DriftScenario:
 
         Without this the new fraud mode lands somewhere the old detector still gives
         a middling score, so a pure top-k policy stumbles into a few cases every
-        round, feeds them to the refit, and quietly heals itself. Measured on this
-        simulator that self-healing reaches 27.7% post-break recall, which leaves
+        round, feeds them to the refit, and quietly heals itself. That recovers a
+        large share of post-break fraud with no exploration at all, which leaves
         exploration nothing to contribute and makes the environment a poor model of
-        the real thing: on Elliptic the frozen detector finds exactly zero for seven
-        consecutive steps.
+        the real thing: on Elliptic the frozen detector finds 2 of the 169 illicit
+        transactions in steps 43-49 (``results/collapse.log``).
 
         Screening candidate centres against a detector fitted on pre-break traffic
         reproduces that. It is also the more realistic story, since an adversary who

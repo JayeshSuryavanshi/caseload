@@ -1,11 +1,11 @@
 """Baseline policies, including the one that is hard to beat.
 
-``TopK`` is the policy real systems run: score everything, investigate the highest,
-spend the budget evenly over time. It is strong. On Elliptic before the regime break
-it finds 33 to 88 percent of labelled illicit transactions per step at a 2 percent
-budget. Any learned policy that cannot beat it is not worth shipping, and saying so
-is the point of keeping it here as the headline opponent rather than comparing
-against random.
+``TopK`` is the usual baseline: score everything, investigate the highest, spend
+the budget evenly over time. It is strong. On Elliptic before the regime break it
+finds 36 to 91 percent of labelled illicit transactions per step at a 2 percent
+budget (results/collapse.log). Any learned policy that cannot beat it is not worth
+shipping, and saying so is the point of keeping it here as the headline opponent
+rather than comparing against random.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ class Policy(Protocol):
 
 
 class TopK:
-    """Uniform spend, no exploration. The industry default."""
+    """Uniform spend, no exploration. The common baseline."""
 
     name = "top-k"
 

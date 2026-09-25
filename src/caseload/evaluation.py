@@ -1,10 +1,10 @@
 """Aggregation that does not lie about small samples.
 
-Patterson et al. (JMLR 2024) show that 10 runs is not enough to estimate a mean
-reliably on even a small environment, and that several common interval methods miss
-the true mean at that sample size. Roughly 20 to 30 runs gives trustworthy bootstrap
-intervals. The environments here are cheap precisely so that 30 or more seeds is
-routine rather than heroic.
+Patterson et al. (JMLR 2024) show how badly a handful of runs can mislead: in one
+of their examples, 10 runs of DQN put the estimated mean far from the true one. They
+write that in almost all cases 5 runs is not enough for strong claims, and that even
+30 can fall short when outcomes are skewed. The environments here are cheap
+precisely so that 30 or more seeds is routine rather than heroic.
 
 Point estimates use the interquartile mean, and intervals come from a stratified
 bootstrap over seeds, following Agarwal et al. (NeurIPS 2021). The interquartile mean

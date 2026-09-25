@@ -1,0 +1,38 @@
+elliptic: 203,769 transactions, 49 time steps, 46,564 labelled (22.9%), illicit share of labelled 9.8%
+archive sha256 c9bedd7e5e8817689d2872ec5fec63560624947310afe922e080da358bfa6365
+
+detector frozen on t<=34 (29,894 labelled rows)
+  held-out AUPRC 0.8075  AUROC 0.9374
+
+per-step recall at a 2% budget, frozen detector (break at t=43)
+    t  labelled  illicit  found  budget   recall  precision
+   35      1341      182     95     110   52.2%     86.4%
+   36      1708       33     30     128   90.9%     23.4%
+   37       498       40     24      66   60.0%     36.4%
+   38       756      111     50      58   45.0%     86.2%
+   39      1183       81     29      55   35.8%     52.7%
+   40      1211      112     52      90   46.4%     57.8%
+   41      1132      116     55     107   47.4%     51.4%
+   42      2154      239     93     143   38.9%     65.0%
+   43      1370       24      0     101    0.0%      0.0%   <-- break
+   44      1591       24      0     100    0.0%      0.0%
+   45      1221        5      0     112    0.0%      0.0%
+   46       712        2      1      70   50.0%      1.4%
+   47       846       22      0     102    0.0%      0.0%
+   48       471       36      0      59    0.0%      0.0%
+   49       476       56      1      49    1.8%      2.0%
+
+  t=35..42: per-step recall 35.8% to 90.9%
+  t=43..49: 2 of 169 illicit found (1.2%), 5 of 7 steps at zero
+
+is post-break fraud recoverable? recall on t=45..49 by budget
+   budget  frozen t<=34  refit t<=44    random
+      2%          1.7%         5.0%      1.7%
+      5%          1.7%        18.2%      5.8%
+     10%          3.3%        49.6%      5.0%
+     20%          5.8%        76.9%     27.3%
+
+The gap between the first and second columns is what a policy has to close,
+and it can only be closed by investigating cases the frozen detector ranks low.
+
+wall time 23.3 s

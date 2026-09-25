@@ -5,7 +5,13 @@ trajectory, and no amount of seeding fixes that. So training happens here, on
 random breaks, and Elliptic is only ever used for evaluation by
 ``scripts/evaluate.py``.
 
-    python scripts/train.py --updates 60 --episodes-per-update 8
+The defaults are the ones behind the committed fleet, 200 updates x 8 episodes =
+1,600 episodes per seed:
+
+    python scripts/train.py --seed 0 --out results/fleet/ppo_s0.pt
+
+The checkpoint holds only tensors and plain values, so it loads with
+``torch.load(..., weights_only=True)``.
 """
 
 from __future__ import annotations
@@ -48,9 +54,20 @@ def collect(
     return batch, recalls
 
 
+def checkpoint(state_dict: dict, args: dict, cfg: DriftConfig) -> dict:
+    """What gets saved: weights plus a config of str/int/float/bool values only."""
+
+    def plain(v: object) -> str | int | float | bool:
+        return v if isinstance(v, (str, int, float, bool)) else str(v)
+
+    config = {k: plain(v) for k, v in args.items()}
+    config |= {f"drift.{k}": plain(v) for k, v in vars(cfg).items()}
+    return {"state_dict": state_dict, "config": config}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--updates", type=int, default=60)
+    ap.add_argument("--updates", type=int, default=200)
     ap.add_argument("--episodes-per-update", type=int, default=8)
     ap.add_argument("--budget", type=float, default=0.10)
     ap.add_argument("--rounds", type=int, default=18)
@@ -89,9 +106,7 @@ def main() -> None:
             flush=True,
         )
 
-    torch.save(
-        {"state_dict": agent.net.state_dict(), "config": vars(a) | {"cfg": vars(cfg)}}, a.out
-    )
+    torch.save(checkpoint(agent.net.state_dict(), vars(a), cfg), a.out)
     pathlib.Path(str(a.out).replace(".pt", "_log.json")).write_text(json.dumps(log, indent=1))
     print(f"\nsaved {a.out}")
 

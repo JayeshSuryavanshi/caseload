@@ -4,7 +4,7 @@
   ...20/20 drift seeds
 held-out drift seeds 500..519, 10% budget, 20 episodes
 policy                                  overall      pre     post               vs top-k     P
-ppo                          0.683 [0.636,0.731]    0.966    0.296 +0.076 [+0.036,+0.130]  0.77
+ppo                          0.655 [0.610,0.698]    0.972    0.190 +0.042 [+0.019,+0.092]  0.71
 top-k                        0.579 [0.539,0.631]    0.974    0.042            (reference)  0.50
 eps-explore(0.15)            0.590 [0.542,0.640]    0.955    0.088 -0.005 [-0.021,+0.015]  0.51
 eps-explore(0.35)            0.553 [0.496,0.610]    0.889    0.116 -0.040 [-0.073,-0.005]  0.39
@@ -13,17 +13,17 @@ yield-triggered(drop=0.5)    0.582 [0.556,0.613]    0.952    0.105 +0.016 [-0.00
 oracle ceiling                            0.997
 
 zero-shot on Elliptic: 15 rounds, break at round 8, 1,083 illicit
-archive sha256 c9bedd7e5e8817689d2872ec5fec63560624947310afe922e080da358bfa6365
+archive sha256 40d958f0f18e45dd096d73227a7cdca7a90f229f8c93b38b05cdc06756d5bae5
 policy                         overall      pre     post  spread over policy seeds
-ppo                              0.705    0.819    0.087  0.702 to 0.708
+ppo                              0.733    0.846    0.122  0.720 to 0.741
 top-k                            0.730    0.851    0.077  0.730 to 0.730
 eps-explore(0.15)                0.720    0.837    0.089  0.717 to 0.724
-eps-explore(0.35)                0.713    0.802    0.233  0.693 to 0.727
-eps-explore(0.6)                 0.659    0.714    0.361  0.645 to 0.669
-yield-triggered(drop=0.5)        0.754    0.818    0.408  0.742 to 0.764
+eps-explore(0.35)                0.713    0.803    0.223  0.693 to 0.726
+eps-explore(0.6)                 0.690    0.714    0.560  0.679 to 0.703
+yield-triggered(drop=0.5)        0.712    0.801    0.231  0.694 to 0.739
 oracle ceiling                   1.000    1.000    1.000
 
 One trajectory. The spread is over the policy's own randomness and is
 not a confidence interval over episodes.
 
-wrote results/fleet/eval_s2.json
+wrote results/legacy_archive/eval_s3.json

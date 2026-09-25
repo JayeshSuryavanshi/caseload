@@ -1,0 +1,14 @@
+6 training seeds, each evaluated on the same held-out drift episodes
+
+policy                                    overall           post-break                 vs top-k     P
+ppo                           0.655 [0.635,0.670]  0.197 [0.138,0.251]   +0.076 [+0.056,+0.091]  1.00  significant
+top-k                         0.579 [0.579,0.579]  0.042 [0.042,0.042]              (reference)
+eps-explore(0.15)             0.590 [0.590,0.590]  0.088 [0.088,0.088]   +0.012 [+0.012,+0.012]  1.00  significant
+eps-explore(0.35)             0.553 [0.553,0.553]  0.116 [0.116,0.116]   -0.025 [-0.025,-0.025]  0.00  worse
+eps-explore(0.6)              0.455 [0.455,0.455]  0.152 [0.152,0.152]   -0.124 [-0.124,-0.124]  0.00  worse
+yield-triggered(drop=0.5)     0.582 [0.582,0.582]  0.105 [0.105,0.105]   +0.004 [+0.004,+0.004]  1.00  significant
+oracle ceiling                              0.997
+
+ppo vs yield-triggered: +0.0725 [+0.0526,+0.0877]  ->  CLEARS the hand-written rule
+
+This says nothing about transfer. Run scripts/evaluate.py with Elliptic present for that.

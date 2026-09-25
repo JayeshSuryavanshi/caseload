@@ -5,6 +5,9 @@
 # a few processes each trying to use every core: the refits then fight each other.
 #
 #   ./scripts/run_fleet.sh 30 200        # 30 seeds, 200 updates each
+#   ./scripts/run_fleet.sh 6 200         # the committed results/fleet/
+#
+# Uses $PYTHON if set (e.g. PYTHON=.venv/bin/python), otherwise python on the PATH.
 set -u
 SEEDS="${1:-30}"
 UPDATES="${2:-200}"
@@ -22,7 +25,7 @@ export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_TH
 
 run_one() {
   s="$1"
-  ./.venv/bin/python -u scripts/train.py \
+  "${PYTHON:-python}" -u scripts/train.py \
     --updates "$UPDATES" --episodes-per-update 8 --rounds 18 --budget 0.10 \
     --seed "$s" --out "results/fleet/ppo_s${s}.pt" \
     > "results/fleet/train_s${s}.log" 2>&1

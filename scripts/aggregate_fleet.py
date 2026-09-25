@@ -3,7 +3,7 @@
 Treats each training seed as one observation, which is the right unit: the question
 is whether the method works, not whether one initialisation got lucky.
 
-    python scripts/aggregate_fleet.py results/fleet
+    python scripts/aggregate_fleet.py results/fleet > results/fleet_aggregate.log
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import numpy as np
 
 from caseload.evaluation import (
     bootstrap_interval,
+    iqm,
     paired_difference,
     probability_of_improvement,
 )
@@ -29,18 +30,16 @@ def main() -> None:
 
     per_policy: dict[str, list[float]] = {}
     per_policy_post: dict[str, list[float]] = {}
+    ceiling: list[float] = []
     for f in files:
         blob = json.loads(f.read_text())
         drift = blob["drift"]
         for name, vals in drift["overall"].items():
             # one number per training seed: that seed's IQM over its eval episodes
-            from caseload.evaluation import iqm
-
             per_policy.setdefault(name, []).append(iqm(np.asarray(vals)))
         for name, vals in drift["post"].items():
-            from caseload.evaluation import iqm
-
             per_policy_post.setdefault(name, []).append(iqm(np.asarray(vals)))
+        ceiling.append(iqm(np.asarray(drift["ceiling"])))
 
     n = len(files)
     print(f"{n} training seeds, each evaluated on the same held-out drift episodes\n")
@@ -63,6 +62,8 @@ def main() -> None:
         else:
             flag = "  significant" if dd.lo > 0 else "  worse"
         print(f"{name:28} {a:>20} {b:>20} {delta:>24} {p:>5.2f}{flag}")
+    # the same episodes for every seed, so this is one number, with the same statistic
+    print(f"{'oracle ceiling':28} {iqm(np.asarray(ceiling)):>20.3f}")
 
     if "ppo" in per_policy and "yield-triggered(drop=0.5)" in per_policy:
         dd = paired_difference(

@@ -2,10 +2,10 @@
 
 Deliberately small. The action space is two grids of five, the observation is
 fifteen numbers and an episode is a few tens of rounds, so the policy is a
-two-layer MLP and the whole thing trains on a laptop CPU. Measured on an M1 Pro,
-CPU beats MPS by 2.7 to 4.7x at these batch sizes; MPS only wins above roughly a
-thousand rows per update, which this never reaches. There is no device flag
-because there is no decision to make.
+two-layer MLP and the whole thing trains on a laptop CPU. At these batch sizes
+Apple's MPS backend was slower than CPU when I tried it on an M1 Pro; that
+comparison is not scripted here, so it is a note rather than a result. There is no
+device flag.
 
 The only non-obvious part is that the environment is expensive relative to the
 policy: a round refits a gradient boosting detector, so almost all wall-clock is

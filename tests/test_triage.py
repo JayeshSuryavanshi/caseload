@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pytest
 
 from caseload.triage import (
     BAND_GRID,
+    LAMBDA_T,
     OBS_DIM,
     PACE_GRID,
+    STRESS_FP_COSTS,
     TriageConfig,
     TriageMDP,
     _pick,
+    cost_optimal_threshold,
 )
 
 fifar = pytest.importorskip("caseload.envs.fifar")
@@ -129,50 +134,96 @@ def test_saving_per_review_is_spend_normalised(data):
         assert 0.0 <= r.capacity_used <= 1.0
 
 
-def test_review_is_net_negative_at_fifar_cost_regime(data):
-    """The headline finding, asserted so a refactor cannot silently reverse it.
+def _refit(data, sc, fp_cost: float) -> TriageConfig:
+    rows = np.concatenate(sc.batches)
+    th = cost_optimal_threshold(data.score[rows], data.y[rows], 1.0, fp_cost)
+    return TriageConfig(fp_cost=fp_cost, threshold=th)
 
-    At an 88:1 missed-fraud-to-false-alarm ratio, a 15.7% analyst miss rate against
-    a 12.1% fraud base rate costs more than the false alarms analysts clear, so every
-    routing band loses money. An earlier version of this test asserted the opposite,
-    because it ran at a 0.5 threshold on alerts that are all above 0.051.
+
+def test_default_cost_is_the_stated_regime():
+    """FiFAR (Eq. 8) and DeCCaF (Eq. 21) state lambda_t = 0.057; the others are stress."""
+    assert TriageConfig().fp_cost == LAMBDA_T == 0.057
+    assert STRESS_FP_COSTS["lambda_t/5"] == pytest.approx(0.0114)
+    assert STRESS_FP_COSTS["5*lambda_t"] == pytest.approx(0.285)
+
+
+def test_review_loses_in_the_lambda_t_over_5_stress_case(data):
+    """At about 88:1 the cost-optimal model blocks every alert and review loses.
+
+    Only 6 of FiFAR's 50 analysts beat blocking every alert at this cost, because
+    they were generated to beat it at lambda_t, not here. An earlier version of this
+    test called 88:1 FiFAR's own regime; it is DeCCaF's lambda_t/5 variation.
     """
+    fp = STRESS_FP_COSTS["lambda_t/5"]
     sc = fifar.load_scenario(data, "shuffle_1#team_1", "train_alert", capacity_ratio=0.10)
+    cfg = _refit(data, sc, fp)
     for band in BAND_GRID:
-        m = TriageMDP(data, sc, TriageConfig())
+        m = TriageMDP(data, sc, cfg)
         m.reset(seed=0)
         while not m.done:
             m.step(2, BAND_GRID.index(band))
-        assert m.result().saving_per_review < 0, f"{band} should lose at 88:1"
+        assert m.result().saving_per_review < 0, f"{band} should lose at lambda_t/5"
 
 
-def test_review_pays_once_false_alarms_are_expensive(data):
-    """And the crossover is real: cheap enough fraud cost and review earns its keep."""
+def test_review_pays_at_the_stated_regime(data):
+    """At lambda_t, with the threshold refitted, every routing band saves money."""
     sc = fifar.load_scenario(data, "shuffle_1#team_1", "train_alert", capacity_ratio=0.10)
-    got = {}
-    for fp_cost in (0.0114, 0.20):
-        m = TriageMDP(data, sc, TriageConfig(fp_cost=fp_cost))
+    cfg = _refit(data, sc, LAMBDA_T)
+    for band in BAND_GRID:
+        m = TriageMDP(data, sc, cfg)
+        m.reset(seed=0)
+        while not m.done:
+            m.step(2, BAND_GRID.index(band))
+        assert m.result().saving_per_review > 0, f"{band} should save at lambda_t"
+
+
+@pytest.mark.parametrize("fp_cost", [STRESS_FP_COSTS["lambda_t/5"], LAMBDA_T])
+def test_first_principles_matches_the_environment(data, fp_cost):
+    """Per review: P(legit) x (1 - FPR) x fp_cost gained, P(fraud) x FNR lost."""
+    er = data.expert_error_rates()
+    prev, fnr, fpr = data.y.mean(), er[:, 0].mean(), er[:, 1].mean()
+    predicted = (1 - prev) * (1 - fpr) * fp_cost - prev * fnr
+    measured = []
+    for team in range(1, 6):
+        sc = fifar.load_scenario(
+            data, f"shuffle_1#team_{team}", "train_alert", capacity_ratio=0.10
+        )
+        m = TriageMDP(data, sc, _refit(data, sc, fp_cost))
         m.reset(seed=0)
         while not m.done:
             m.step(2, 1)
-        got[fp_cost] = m.result().saving_per_review
-    assert got[0.0114] < 0 < got[0.20], got
+        measured.append(m.result().saving_per_review)
+    # teams and the routing rule differ from a random analyst, so allow a gap, but
+    # the sign and the scale must hold
+    assert np.sign(np.mean(measured)) == np.sign(predicted)
+    assert abs(np.mean(measured) - predicted) < 0.005, (measured, predicted)
 
 
-def test_first_principles_matches_the_environment(data):
-    """The per-review loss should equal prevalence x FNR minus the cleared-alarm gain."""
-    er = data.expert_error_rates()
-    prev, fnr, fpr = data.y.mean(), er[:, 0].mean(), er[:, 1].mean()
-    predicted = (1 - prev) * (1 - fpr) * 0.0114 - prev * fnr * 1.0
+@pytest.mark.parametrize("carry", [True, False])
+@pytest.mark.parametrize("pace", [PACE_GRID.index(1.0), len(PACE_GRID) - 1])
+def test_reviewed_counts_only_alerts_an_analyst_decided(data, carry, pace):
+    """A review is counted only when an analyst's decision replaced the model's.
+
+    Every analyst here disagrees with the model on every alert, so each alert an
+    analyst decided is either fixed or broken, and the two must add up to the
+    reviews counted. An earlier version counted picks that found no analyst with
+    room left, which inflated the denominator of saving_per_review.
+    """
     sc = fifar.load_scenario(data, "shuffle_1#team_1", "train_alert", capacity_ratio=0.10)
-    m = TriageMDP(data, sc, TriageConfig())
+    cfg = TriageConfig(carry_capacity=carry)
+    model_call = (data.score > cfg.threshold).astype(int)
+    flipped = np.repeat((1 - model_call)[:, None], data.expert.shape[1], axis=1)
+    contrarian = dataclasses.replace(data, expert=flipped)
+    m = TriageMDP(contrarian, sc, cfg)
     m.reset(seed=0)
+    decided = 0
     while not m.done:
-        m.step(2, 1)
-    measured = m.result().saving_per_review
-    # the routing rule is not random, so allow a gap, but the sign and scale must hold
-    assert predicted < 0 and measured < 0
-    assert abs(measured - predicted) < 0.01, (measured, predicted)
+        _, _, _, rec = m.step(pace, BAND_GRID.index("near-threshold"))
+        decided += rec.reviewer_fixed + rec.reviewer_broke
+        assert rec.reviewer_fixed + rec.reviewer_broke == rec.reviewed
+    r = m.result()
+    assert decided == r.reviewed == int(m.routed_mask.sum())
+    assert r.reviewed <= r.capacity
 
 
 def test_carry_capacity_lets_a_slow_policy_spend_its_budget(data):
@@ -194,6 +245,8 @@ def test_pick_bands_are_distinct_and_bounded():
         assert len(p) == 10, b
         assert len(set(p.tolist())) == 10, f"{b} returned duplicates"
     assert s[picks["top-score"]].mean() > s[picks["bottom-score"]].mean()
+    # half near the threshold, the rest from the top of the score order
+    assert set(picks["mixed"].tolist()) == set(range(47, 52)) | set(range(95, 100))
     assert (
         abs(s[picks["near-threshold"]] - 0.5).mean() < abs(s[picks["top-score"]] - 0.5).mean()
     )

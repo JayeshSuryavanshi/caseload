@@ -2,8 +2,8 @@
 
 A deployed model scores every alert. A small team of analysts can review some of
 them. Reviewed alerts take the analyst's decision, which is recorded in FiFAR for
-every analyst and every alert, and which is sometimes wrong: measured on the
-shipped data, analyst false-negative rates run from 0.015 to 0.312 and
+every analyst and every alert, and which is sometimes wrong: on the shipped data,
+the synthetic analysts' false-negative rates run from 0.015 to 0.312 and
 false-positive rates from 0.015 to 0.759. Unreviewed alerts are decided by the
 model at a fixed threshold.
 
@@ -19,7 +19,11 @@ parameter here, and the headline measurement is the ratio below which spending
 sequentially starts to pay.
 
 Cost is asymmetric and the ratio is explicit, because the conclusion depends on it:
-a missed fraud costs ``fn_cost`` and a false alarm costs ``fp_cost``.
+a missed fraud costs ``fn_cost`` and a false alarm costs ``fp_cost``. The default is
+the regime FiFAR and DeCCaF state, ``fp_cost = LAMBDA_T = 0.057`` (about 17.5:1).
+DeCCaF also runs lambda_t/5 and 5*lambda_t, which it calls "not strictly
+comparable"; those are ``STRESS_FP_COSTS`` here and should be reported as stress
+cases, not as the benchmark's regime.
 """
 
 from __future__ import annotations
@@ -57,16 +61,27 @@ OBS_DIM = len(OBS_NAMES)
 # second threshold above it declines cases the bank had decided to look at
 ALERT_THRESHOLD = 0.051
 
+# false-alarm cost as a fraction of a missed fraud, derived from the alert threshold t
+# as lambda_t = t / (1 - t): FiFAR (Alves et al., Sci Data 2025, Eq. 8, used to
+# generate its analysts) and DeCCaF (Alves et al., TMLR 2024, Sec. 4.1 and Eq. 21)
+LAMBDA_T = 0.057
+# DeCCaF's other two cost structures, run to probe sensitivity and described there as
+# "not strictly comparable" to lambda_t, because the alert model was not tuned for them
+STRESS_FP_COSTS: dict[str, float] = {
+    "lambda_t/5": LAMBDA_T / 5,
+    "5*lambda_t": LAMBDA_T * 5,
+}
+
 
 def cost_optimal_threshold(
-    score: np.ndarray, y: np.ndarray, fn_cost: float = 1.0, fp_cost: float = 0.0114
+    score: np.ndarray, y: np.ndarray, fn_cost: float = 1.0, fp_cost: float = LAMBDA_T
 ) -> float:
     """The threshold a competent operator would already be using.
 
     Reporting any value for human review without this is measuring threshold
-    re-tuning, not review. Measured on FiFAR at fp_cost=0.05, a threshold of 0.5
-    costs 3,427 against 1,347 at the alert threshold, so the choice dominates
-    anything a routing policy does.
+    re-tuning, not review. On FiFAR a fixed threshold of 0.5 flags almost none of
+    the alerts and misses almost all the fraud, and the choice of threshold then
+    dominates anything a routing policy does.
     """
     cand = np.unique(np.quantile(score, np.linspace(0.0, 1.0, 201)))
     best, best_c = float(cand[0]), float("inf")
@@ -82,7 +97,7 @@ def cost_optimal_threshold(
 class TriageConfig:
     threshold: float = ALERT_THRESHOLD
     fn_cost: float = 1.0
-    fp_cost: float = 0.0114
+    fp_cost: float = LAMBDA_T
     assign: str = "best-fnr"  # which analyst takes a routed alert
     carry_capacity: bool = True  # unused review slots roll forward
 
@@ -156,7 +171,9 @@ def _pick(scores: np.ndarray, k: int, band: str, thresh: float, rng) -> np.ndarr
     if band == "mixed":
         half = k // 2
         a = np.argsort(np.abs(scores - thresh))[:half]
-        rest = np.setdiff1d(np.argsort(-scores), a, assume_unique=False)
+        # np.setdiff1d would sort by row index and lose the score order
+        by_score = np.argsort(-scores)
+        rest = by_score[~np.isin(by_score, a)]
         return np.concatenate([a, rest[: k - len(a)]]).astype(int)
     raise ValueError(f"unknown band {band!r}")
 
@@ -172,7 +189,6 @@ class TriageMDP:
         # analysts ranked by how often they miss fraud; the routing rule uses this
         er = data.expert_error_rates()
         self._order = np.argsort(er[:, 0])
-        self._active = np.where(scenario.capacity.sum(axis=0) > 0)[0]
         self.carry_capacity = self.cfg.carry_capacity
         self._alert_rate = float(data.y.mean())
 
@@ -183,6 +199,11 @@ class TriageMDP:
         self.cost = 0.0
         self.cost_model = 0.0
         self.reviewed = 0
+        self._carried = np.zeros(self.sc.capacity.shape[1], dtype=int)
+        # per alert row: the decision that stood (-1 until its batch is seen) and
+        # whether an analyst made it, so costs can be resampled alert by alert
+        self.final_decision = np.full(self.d.n, -1, dtype=int)
+        self.routed_mask = np.zeros(self.d.n, dtype=bool)
         self.records: list[BatchRecord] = []
         self._cost_rates: list[float] = []
         self._values: list[float] = []
@@ -222,8 +243,14 @@ class TriageMDP:
         return np.nan_to_num(obs, nan=0.0, posinf=1.0, neginf=-1.0)
 
     def _decide(
-        self, idx: np.ndarray, review_local: np.ndarray
-    ) -> tuple[float, float, int, int, int, int]:
+        self, idx: np.ndarray, review_local: np.ndarray, room: np.ndarray
+    ) -> tuple[float, float, int, int, int, int, np.ndarray]:
+        """Apply this batch's decisions and return the cost and the alerts routed.
+
+        ``room`` is each analyst's review slots for this batch and is spent in place.
+        A picked alert that finds no analyst with room left keeps the model's call and
+        is not a review, so callers must count ``routed``, not ``review_local``.
+        """
         c = self.cfg
         y = self.d.y[idx]
         model_call = (self.d.score[idx] > c.threshold).astype(int)
@@ -231,9 +258,9 @@ class TriageMDP:
 
         # route reviewed alerts to active analysts, lowest-miss-rate first, honouring
         # per-analyst capacity for this batch
+        routed = []
         if len(review_local):
-            order = [j for j in self._order if j in set(self._active.tolist())]
-            room = {j: int(self.sc.capacity[self.t, j]) for j in order}
+            order = [j for j in self._order if room[j] > 0]
             cursor = 0
             for local in review_local:
                 while cursor < len(order) and room[order[cursor]] <= 0:
@@ -243,6 +270,10 @@ class TriageMDP:
                 j = order[cursor]
                 room[j] -= 1
                 final[local] = self.d.expert[idx[local], j]
+                routed.append(local)
+        routed = np.asarray(routed, dtype=int)
+        self.final_decision[idx] = final
+        self.routed_mask[idx[routed]] = True
 
         def cost_of(dec: np.ndarray) -> tuple[float, int, int]:
             fn = int(((dec == 0) & (y == 1)).sum())
@@ -253,15 +284,14 @@ class TriageMDP:
         base, _, _ = cost_of(model_call)
         # how the human changed the outcome on the alerts they saw, both directions,
         # because a reviewer who overturns a correct model call is a real cost
-        if len(review_local):
-            r = review_local
-            model_right = model_call[r] == y[r]
-            human_right = final[r] == y[r]
+        if len(routed):
+            model_right = model_call[routed] == y[routed]
+            human_right = final[routed] == y[routed]
             fixed = int((~model_right & human_right).sum())
             broke = int((model_right & ~human_right).sum())
         else:
             fixed = broke = 0
-        return got, base, fn, fp, fixed, broke
+        return got, base, fn, fp, fixed, broke, routed
 
     def step(self, pace_idx: int, band_idx: int):
         if self.done:
@@ -271,34 +301,36 @@ class TriageMDP:
         idx = self.sc.batches[self.t]
         left = self.sc.n_batches - self.t
         even = self.cap_left / max(left, 1)
-        batch_cap = int(self.sc.capacity[self.t].sum())
-        want = round(pace * even)
+        # as FiFAR ships it, each analyst's slots are per batch and expire unused
+        room = self.sc.capacity[self.t].astype(int).copy()
         if self.carry_capacity:
-            # unused slots roll forward into a shared pool, so the only ceilings are
-            # the batch itself and what is left. this is what makes allocation a real
-            # decision rather than an accounting artefact
-            ceiling = min(len(idx), self.cap_left)
-        else:
-            # FiFAR-faithful: capacity is per batch and expires unused
-            ceiling = min(len(idx), self.cap_left, max(batch_cap, 0))
+            # an analyst's unused slots roll forward to their later batches, so a slow
+            # batch banks capacity for a large one. slots cannot be borrowed from
+            # batches that have not arrived
+            room += self._carried
+        want = round(pace * even)
+        ceiling = min(len(idx), self.cap_left, int(room.sum()))
         n_review = int(max(min(want, ceiling), 0))
 
         local = _pick(self.d.score[idx], n_review, band, self.cfg.threshold, self._rng)
-        got, base, fn, fp, fixed, broke = self._decide(idx, local)
+        got, base, fn, fp, fixed, broke, routed = self._decide(idx, local, room)
+        n_routed = len(routed)
+        if self.carry_capacity:
+            self._carried = room
 
         cap_before = self.cap_left
-        self.cap_left -= len(local)
-        self.reviewed += len(local)
+        self.cap_left -= n_routed
+        self.reviewed += n_routed
         self.cost += got
         self.cost_model += base
         self._cost_rates.append(got / max(len(idx), 1))
-        self._values.append((base - got) / max(len(local), 1) if len(local) else 0.0)
+        self._values.append((base - got) / n_routed if n_routed else 0.0)
 
         rec = BatchRecord(
             batch_index=self.t,
             size=len(idx),
             capacity_before=cap_before,
-            reviewed=len(local),
+            reviewed=n_routed,
             pace=pace,
             band=band,
             cost=got,

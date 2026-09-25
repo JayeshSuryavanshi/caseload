@@ -6,4 +6,15 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.DS_Store
+
+# scratch checkpoints from scripts/train.py and scripts/train_long.sh; the six in
+# results/fleet/ are tracked on purpose and tests/test_checkpoints.py loads them
 results/*.pt
+
+# datasets live in ~/.cache/caseload, never in the repository
+data/
+*.zip
+*.npz
+*.parquet
+*.csv

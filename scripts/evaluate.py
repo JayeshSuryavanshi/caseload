@@ -9,7 +9,10 @@ Elliptic is a single trajectory, so the spread reported for it is over the polic
 own randomness, not over episodes. It is not a confidence interval and is not
 labelled as one. The drift numbers are the ones that carry intervals.
 
-    python scripts/evaluate.py --model results/ppo.pt
+The defaults reproduce the committed ``results/fleet/eval_s0.json``, and the output
+path follows the model's, so ``ppo_s3.pt`` writes ``eval_s3.json`` beside it:
+
+    python scripts/evaluate.py --model results/fleet/ppo_s0.pt
 """
 
 from __future__ import annotations
@@ -34,16 +37,17 @@ from caseload.agents.ppo import ActorCritic, PPOPolicy
 from caseload.envs import DriftConfig, make_episode
 from caseload.evaluation import (
     bootstrap_interval,
+    iqm,
     paired_difference,
     probability_of_improvement,
 )
 
 # disjoint from the 1,000,000+ range scripts/train.py samples from
-EVAL_SEEDS = range(500, 530)  # overridden by --seeds
+EVAL_SEEDS = range(500, 520)  # overridden by --seeds
 
 
 def load_policy(path: pathlib.Path) -> PPOPolicy:
-    blob = torch.load(path, map_location="cpu", weights_only=False)
+    blob = torch.load(path, map_location="cpu", weights_only=True)
     net = ActorCritic()
     net.load_state_dict(blob["state_dict"])
     net.eval()
@@ -62,19 +66,27 @@ def opponents() -> list:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", type=pathlib.Path, default=pathlib.Path("results/ppo.pt"))
+    ap.add_argument(
+        "--model", type=pathlib.Path, default=pathlib.Path("results/fleet/ppo_s0.pt")
+    )
     ap.add_argument("--budget", type=float, default=0.10)
     ap.add_argument("--rounds", type=int, default=18)
-    ap.add_argument("--seeds", type=int, default=30)
+    ap.add_argument("--seeds", type=int, default=20)
     ap.add_argument("--elliptic-seeds", type=int, default=3)
-    ap.add_argument("--out", type=pathlib.Path, default=pathlib.Path("results/evaluation.json"))
+    ap.add_argument(
+        "--elliptic",
+        type=pathlib.Path,
+        default=None,
+        help="Elliptic archive to use instead of the default cache lookup",
+    )
+    ap.add_argument("--out", type=pathlib.Path, default=None)
     a = ap.parse_args()
+    if not a.model.exists():
+        ap.error(f"no model at {a.model}; train one with scripts/train.py")
+    if a.out is None:
+        a.out = a.model.with_name(a.model.stem.replace("ppo", "eval", 1) + ".json")
 
-    pols: list = list(opponents())
-    if a.model.exists():
-        pols.insert(0, load_policy(a.model))
-    else:
-        print(f"no model at {a.model}; reporting baselines only\n")
+    pols: list = [load_policy(a.model), *opponents()]
 
     global EVAL_SEEDS
     EVAL_SEEDS = range(500, 500 + a.seeds)
@@ -117,22 +129,25 @@ def main() -> None:
             "(reference)" if p.name == "top-k" else f"{d.point:+.3f} [{d.lo:+.3f},{d.hi:+.3f}]"
         )
         print(
-            f"{p.name:28} {span:>18} {np.mean(pre[p.name]):>8.3f} "
-            f"{np.mean(post[p.name]):>8.3f} {delta:>22} {pbi:>5.2f}"
+            f"{p.name:28} {span:>18} {iqm(np.asarray(pre[p.name])):>8.3f} "
+            f"{iqm(np.asarray(post[p.name])):>8.3f} {delta:>22} {pbi:>5.2f}"
         )
-    print(f"{'oracle ceiling':28} {np.mean(ceil):>18.3f}")
+    # IQM, like the overall column, so the ceiling reads against the same statistic
+    print(f"{'oracle ceiling':28} {iqm(np.asarray(ceil)):>18.3f}")
 
     result = {"drift": {"overall": overall, "pre": pre, "post": post, "ceiling": ceil}}
 
     # zero-shot transfer to the real regime break
     try:
-        from caseload.envs.elliptic import load_episode
+        from caseload.envs.elliptic import archive_fingerprint, load_episode
 
-        ep, b = load_episode()
+        ep, b = load_episode(a.elliptic)
+        sha = archive_fingerprint(a.elliptic)
         print(
             f"\nzero-shot on Elliptic: {ep.n_rounds} rounds, break at round {b}, "
             f"{ep.n_positives:,} illicit"
         )
+        print(f"archive sha256 {sha}")
         print(f"{'policy':28} {'overall':>9} {'pre':>8} {'post':>8}  spread over policy seeds")
         ell: dict[str, list] = {}
         for p in pols:
@@ -155,6 +170,7 @@ def main() -> None:
         print("\nOne trajectory. The spread is over the policy's own randomness and is")
         print("not a confidence interval over episodes.")
         result["elliptic"] = ell
+        result["elliptic_sha256"] = sha
     except FileNotFoundError:
         print("\n(Elliptic not available; run scripts/fetch_elliptic.py for the transfer test)")
 

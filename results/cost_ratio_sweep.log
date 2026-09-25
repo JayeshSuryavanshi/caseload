@@ -1,0 +1,161 @@
+FiFAR, review budget 10% of alerts, fn_cost = 1.0, 2000 bootstrap replicates (scenarios and alerts resampled together)
+in-sample: 25 training scenarios over 26,165 alerts; held-out: 5 teams over 4,457 month-8 alerts
+saving = share of the model-only cost that review removed (negative = review
+raised cost); per review = cost avoided per alert an analyst decided
+
+===  87.7:1  (fp_cost 0.0114)  [lambda_t/5 (DeCCaF stress case)]
+  refit threshold 0.0510; analysts who beat blocking every alert: 6/50; a blocked alert sent to a random analyst saves -0.0121
+  in-sample, refit threshold
+    even/near-threshold          saving -13.27% [-17.92%,  -8.86%]   per review -0.0134 [-0.0181, -0.0090]   reviews 2616
+    even/top-score               saving  -4.94% [ -6.82%,  -3.29%]   per review -0.0050 [-0.0069, -0.0034]   reviews 2616
+    even/mixed                   saving  -6.01% [ -8.91%,  -2.98%]   per review -0.0061 [-0.0090, -0.0030]   reviews 2616
+    even/bottom-score            saving -13.27% [-17.92%,  -8.86%]   per review -0.0134 [-0.0181, -0.0090]   reviews 2616
+    proportional/near-threshold  saving -13.13% [-18.33%,  -8.11%]   per review -0.0140 [-0.0194, -0.0087]   reviews 2475
+    front-loaded/near-threshold  saving -13.89% [-19.25%,  -8.50%]   per review -0.0140 [-0.0194, -0.0087]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving -17.17% [-31.99%,  -4.76%]   per review -0.0164 [-0.0305, -0.0046]   reviews 446
+    even/top-score               saving  -0.15% [ -4.78%,  +1.98%]   per review -0.0001 [-0.0046, +0.0019]   reviews 446
+    even/mixed                   saving  -2.40% [ -9.89%,  +2.78%]   per review -0.0023 [-0.0095, +0.0026]   reviews 446
+    even/bottom-score            saving -17.17% [-31.99%,  -4.76%]   per review -0.0164 [-0.0305, -0.0046]   reviews 446
+    proportional/near-threshold  saving -17.17% [-31.99%,  -4.76%]   per review -0.0164 [-0.0305, -0.0046]   reviews 446
+    front-loaded/near-threshold  saving -17.17% [-31.99%,  -4.76%]   per review -0.0164 [-0.0305, -0.0046]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving -12.50% [-17.21%, -7.88%]   per review -0.0127
+
+===  50.0:1  (fp_cost 0.0200)
+  refit threshold 0.0510; analysts who beat blocking every alert: 10/50; a blocked alert sent to a random analyst saves -0.0069
+  in-sample, refit threshold
+    even/near-threshold          saving  -3.54% [ -6.20%,  -1.05%]   per review -0.0063 [-0.0110, -0.0019]   reviews 2616
+    even/top-score               saving  -1.38% [ -2.46%,  -0.42%]   per review -0.0024 [-0.0044, -0.0007]   reviews 2616
+    even/mixed                   saving  -0.85% [ -2.50%,  +0.90%]   per review -0.0015 [-0.0044, +0.0016]   reviews 2616
+    even/bottom-score            saving  -3.54% [ -6.20%,  -1.05%]   per review -0.0063 [-0.0110, -0.0019]   reviews 2616
+    proportional/near-threshold  saving  -3.59% [ -6.57%,  -0.71%]   per review -0.0067 [-0.0122, -0.0013]   reviews 2475
+    front-loaded/near-threshold  saving  -3.78% [ -6.86%,  -0.70%]   per review -0.0067 [-0.0121, -0.0013]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  -6.10% [-14.59%,  +1.05%]   per review -0.0102 [-0.0243, +0.0017]   reviews 446
+    even/top-score               saving  +0.66% [ -1.97%,  +1.99%]   per review +0.0011 [-0.0033, +0.0033]   reviews 446
+    even/mixed                   saving  +0.42% [ -3.80%,  +3.39%]   per review +0.0007 [-0.0065, +0.0058]   reviews 446
+    even/bottom-score            saving  -6.10% [-14.59%,  +1.05%]   per review -0.0102 [-0.0243, +0.0017]   reviews 446
+    proportional/near-threshold  saving  -6.10% [-14.59%,  +1.05%]   per review -0.0102 [-0.0243, +0.0017]   reviews 446
+    front-loaded/near-threshold  saving  -6.10% [-14.59%,  +1.05%]   per review -0.0102 [-0.0243, +0.0017]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving -3.17% [-5.85%, -0.54%]   per review -0.0056
+
+===  33.3:1  (fp_cost 0.0300)
+  refit threshold 0.0510; analysts who beat blocking every alert: 24/50; a blocked alert sent to a random analyst saves -0.0009
+  in-sample, refit threshold
+    even/near-threshold          saving  +0.75% [ -1.04%,  +2.44%]   per review +0.0020 [-0.0028, +0.0065]   reviews 2616
+    even/top-score               saving  +0.19% [ -0.55%,  +0.85%]   per review +0.0005 [-0.0015, +0.0023]   reviews 2616
+    even/mixed                   saving  +1.44% [ +0.32%,  +2.62%]   per review +0.0038 [+0.0008, +0.0069]   reviews 2616
+    even/bottom-score            saving  +0.75% [ -1.04%,  +2.44%]   per review +0.0020 [-0.0028, +0.0065]   reviews 2616
+    proportional/near-threshold  saving  +0.63% [ -1.37%,  +2.57%]   per review +0.0018 [-0.0039, +0.0072]   reviews 2475
+    front-loaded/near-threshold  saving  +0.68% [ -1.36%,  +2.74%]   per review +0.0018 [-0.0036, +0.0073]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  -1.20% [ -6.95%,  +3.65%]   per review -0.0030 [-0.0175, +0.0091]   reviews 446
+    even/top-score               saving  +1.01% [ -0.72%,  +2.01%]   per review +0.0026 [-0.0018, +0.0050]   reviews 446
+    even/mixed                   saving  +1.66% [ -1.17%,  +3.68%]   per review +0.0042 [-0.0029, +0.0094]   reviews 446
+    even/bottom-score            saving  -1.20% [ -6.95%,  +3.65%]   per review -0.0030 [-0.0175, +0.0091]   reviews 446
+    proportional/near-threshold  saving  -1.20% [ -6.95%,  +3.65%]   per review -0.0030 [-0.0175, +0.0091]   reviews 446
+    front-loaded/near-threshold  saving  -1.20% [ -6.95%,  +3.65%]   per review -0.0030 [-0.0175, +0.0091]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +0.97% [-0.82%, +2.72%]   per review +0.0026
+
+===  25.0:1  (fp_cost 0.0400)
+  refit threshold 0.0514; analysts who beat blocking every alert: 40/50; a blocked alert sent to a random analyst saves +0.0052
+  in-sample, refit threshold
+    even/near-threshold          saving  +2.70% [ +1.29%,  +4.07%]   per review +0.0095 [+0.0046, +0.0144]   reviews 2616
+    even/top-score               saving  +0.98% [ +0.41%,  +1.50%]   per review +0.0035 [+0.0015, +0.0053]   reviews 2616
+    even/mixed                   saving  +2.38% [ +1.39%,  +3.35%]   per review +0.0084 [+0.0049, +0.0118]   reviews 2616
+    even/bottom-score            saving  +2.68% [ +1.23%,  +4.10%]   per review +0.0095 [+0.0044, +0.0145]   reviews 2616
+    proportional/near-threshold  saving  +2.55% [ +1.02%,  +4.05%]   per review +0.0095 [+0.0037, +0.0152]   reviews 2475
+    front-loaded/near-threshold  saving  +2.71% [ +1.11%,  +4.29%]   per review +0.0096 [+0.0039, +0.0151]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  +3.70% [ -0.97%,  +8.11%]   per review +0.0128 [-0.0036, +0.0288]   reviews 446
+    even/top-score               saving  +1.16% [ -0.10%,  +1.96%]   per review +0.0040 [-0.0004, +0.0067]   reviews 446
+    even/mixed                   saving  +4.72% [ +1.70%,  +7.86%]   per review +0.0163 [+0.0059, +0.0278]   reviews 446
+    even/bottom-score            saving  +3.84% [ -0.90%,  +8.40%]   per review +0.0132 [-0.0031, +0.0295]   reviews 446
+    proportional/near-threshold  saving  +3.70% [ -0.97%,  +8.11%]   per review +0.0128 [-0.0036, +0.0288]   reviews 446
+    front-loaded/near-threshold  saving  +3.70% [ -0.97%,  +8.11%]   per review +0.0128 [-0.0036, +0.0288]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +3.04% [+1.70%, +4.37%]   per review +0.0108
+
+===  17.5:1  (fp_cost 0.0570)  [lambda_t (FiFAR and DeCCaF stated regime)]
+  refit threshold 0.0543; analysts who beat blocking every alert: 50/50; a blocked alert sent to a random analyst saves +0.0155
+  in-sample, refit threshold
+    even/near-threshold          saving  +3.20% [ +2.22%,  +4.17%]   per review +0.0160 [+0.0110, +0.0208]   reviews 2616
+    even/top-score               saving  +1.70% [ +1.27%,  +2.09%]   per review +0.0085 [+0.0064, +0.0105]   reviews 2616
+    even/mixed                   saving  +2.38% [ +1.67%,  +3.06%]   per review +0.0119 [+0.0084, +0.0154]   reviews 2616
+    even/bottom-score            saving  +3.69% [ +2.52%,  +4.84%]   per review +0.0184 [+0.0126, +0.0244]   reviews 2616
+    proportional/near-threshold  saving  +3.32% [ +2.27%,  +4.37%]   per review +0.0175 [+0.0120, +0.0231]   reviews 2475
+    front-loaded/near-threshold  saving  +3.87% [ +2.82%,  +4.87%]   per review +0.0193 [+0.0140, +0.0245]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  +7.57% [ +4.02%, +11.23%]   per review +0.0379 [+0.0196, +0.0571]   reviews 446
+    even/top-score               saving  +1.29% [ +0.39%,  +1.96%]   per review +0.0065 [+0.0020, +0.0096]   reviews 446
+    even/mixed                   saving  +4.21% [ +2.03%,  +6.64%]   per review +0.0211 [+0.0101, +0.0333]   reviews 446
+    even/bottom-score            saving  +7.66% [ +3.66%, +11.39%]   per review +0.0384 [+0.0181, +0.0593]   reviews 446
+    proportional/near-threshold  saving  +7.57% [ +4.02%, +11.23%]   per review +0.0379 [+0.0196, +0.0571]   reviews 446
+    front-loaded/near-threshold  saving  +7.57% [ +4.02%, +11.23%]   per review +0.0379 [+0.0196, +0.0571]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +4.90% [+3.94%, +5.86%]   per review +0.0248
+
+===  10.0:1  (fp_cost 0.1000)
+  refit threshold 0.0858; analysts who beat blocking every alert: 50/50; a blocked alert sent to a random analyst saves +0.0415
+  in-sample, refit threshold
+    even/near-threshold          saving  +5.61% [ +4.75%,  +6.49%]   per review +0.0419 [+0.0354, +0.0488]   reviews 2616
+    even/top-score               saving  +2.70% [ +2.37%,  +3.03%]   per review +0.0202 [+0.0177, +0.0226]   reviews 2616
+    even/mixed                   saving  +3.87% [ +3.19%,  +4.55%]   per review +0.0289 [+0.0238, +0.0342]   reviews 2616
+    even/bottom-score            saving  +2.40% [ +1.68%,  +3.14%]   per review +0.0180 [+0.0124, +0.0235]   reviews 2616
+    proportional/near-threshold  saving  +5.35% [ +4.49%,  +6.24%]   per review +0.0422 [+0.0353, +0.0495]   reviews 2475
+    front-loaded/near-threshold  saving  +5.92% [ +4.99%,  +6.88%]   per review +0.0442 [+0.0371, +0.0516]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  +4.56% [ +2.20%,  +7.00%]   per review +0.0383 [+0.0183, +0.0589]   reviews 446
+    even/top-score               saving  +1.51% [ +0.90%,  +2.08%]   per review +0.0127 [+0.0076, +0.0171]   reviews 446
+    even/mixed                   saving  +2.10% [ +0.66%,  +3.77%]   per review +0.0177 [+0.0055, +0.0323]   reviews 446
+    even/bottom-score            saving  +4.31% [ +1.93%,  +6.79%]   per review +0.0362 [+0.0164, +0.0576]   reviews 446
+    proportional/near-threshold  saving  +4.56% [ +2.20%,  +7.00%]   per review +0.0383 [+0.0183, +0.0589]   reviews 446
+    front-loaded/near-threshold  saving  +4.56% [ +2.20%,  +7.00%]   per review +0.0383 [+0.0183, +0.0589]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +6.79% [+6.17%, +7.40%]   per review +0.0601
+
+===   3.5:1  (fp_cost 0.2850)  [5*lambda_t (DeCCaF stress case)]
+  refit threshold 0.3146; analysts who beat blocking every alert: 50/50; a blocked alert sent to a random analyst saves +0.1534
+  in-sample, refit threshold
+    even/near-threshold          saving  +4.53% [ +3.21%,  +5.87%]   per review +0.0467 [+0.0328, +0.0612]   reviews 2616
+    even/top-score               saving  +4.77% [ +3.87%,  +5.62%]   per review +0.0493 [+0.0401, +0.0582]   reviews 2616
+    even/mixed                   saving  +3.81% [ +2.76%,  +4.88%]   per review +0.0393 [+0.0283, +0.0507]   reviews 2616
+    even/bottom-score            saving  +0.30% [ -0.32%,  +0.92%]   per review +0.0031 [-0.0032, +0.0095]   reviews 2616
+    proportional/near-threshold  saving  +4.58% [ +3.21%,  +5.98%]   per review +0.0500 [+0.0352, +0.0658]   reviews 2475
+    front-loaded/near-threshold  saving  +4.99% [ +3.63%,  +6.50%]   per review +0.0516 [+0.0368, +0.0676]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  +9.47% [ +6.30%, +12.71%]   per review +0.1349 [+0.0890, +0.1836]   reviews 446
+    even/top-score               saving  +5.03% [ +2.98%,  +7.15%]   per review +0.0717 [+0.0424, +0.1015]   reviews 446
+    even/mixed                   saving  +4.04% [ +1.86%,  +6.25%]   per review +0.0575 [+0.0271, +0.0893]   reviews 446
+    even/bottom-score            saving  -0.03% [ -1.66%,  +1.63%]   per review -0.0004 [-0.0230, +0.0234]   reviews 446
+    proportional/near-threshold  saving  +9.47% [ +6.30%, +12.71%]   per review +0.1349 [+0.0890, +0.1836]   reviews 446
+    front-loaded/near-threshold  saving  +9.47% [ +6.30%, +12.71%]   per review +0.1349 [+0.0890, +0.1836]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +8.41% [+8.05%, +8.79%]   per review +0.2121
+
+===   2.0:1  (fp_cost 0.5000)
+  refit threshold 0.4198; analysts who beat blocking every alert: 50/50; a blocked alert sent to a random analyst saves +0.2835
+  in-sample, refit threshold
+    even/near-threshold          saving  +0.32% [ -1.43%,  +2.09%]   per review +0.0035 [-0.0155, +0.0229]   reviews 2616
+    even/top-score               saving  +1.83% [ +0.30%,  +3.40%]   per review +0.0199 [+0.0032, +0.0377]   reviews 2616
+    even/mixed                   saving  +1.22% [ -0.36%,  +2.85%]   per review +0.0133 [-0.0040, +0.0313]   reviews 2616
+    even/bottom-score            saving  -1.94% [ -2.66%,  -1.22%]   per review -0.0212 [-0.0287, -0.0134]   reviews 2616
+    proportional/near-threshold  saving  +0.93% [ -0.88%,  +2.76%]   per review +0.0107 [-0.0099, +0.0323]   reviews 2475
+    front-loaded/near-threshold  saving  +0.79% [ -1.05%,  +2.66%]   per review +0.0086 [-0.0113, +0.0294]   reviews 2616
+  held-out month 8, threshold from months 4-7
+    even/near-threshold          saving  +3.11% [ -0.58%,  +6.56%]   per review +0.0471 [-0.0088, +0.1019]   reviews 446
+    even/top-score               saving  +3.85% [ +0.63%,  +6.95%]   per review +0.0583 [+0.0096, +0.1056]   reviews 446
+    even/mixed                   saving  +3.29% [ -0.03%,  +6.47%]   per review +0.0498 [-0.0005, +0.0982]   reviews 446
+    even/bottom-score            saving  -2.84% [ -4.80%,  -0.98%]   per review -0.0430 [-0.0700, -0.0152]   reviews 446
+    proportional/near-threshold  saving  +3.11% [ -0.58%,  +6.56%]   per review +0.0471 [-0.0088, +0.1019]   reviews 446
+    front-loaded/near-threshold  saving  +3.11% [ -0.58%,  +6.56%]   per review +0.0471 [-0.0088, +0.1019]   reviews 446
+  without the refit (threshold 0.051), even/near-threshold: saving +8.78% [+8.45%, +9.15%]   per review +0.3887
+
+summary, even/near-threshold, in-sample with the refit threshold:
+    ratio    saving          95% interval  per review
+    87.7:1   -13.27%  [-17.92%,  -8.86%]     -0.0134  lambda_t/5 (DeCCaF stress case)
+    50.0:1    -3.54%  [ -6.20%,  -1.05%]     -0.0063
+    33.3:1    +0.75%  [ -1.04%,  +2.44%]     +0.0020
+    25.0:1    +2.70%  [ +1.29%,  +4.07%]     +0.0095
+    17.5:1    +3.20%  [ +2.22%,  +4.17%]     +0.0160  lambda_t (FiFAR and DeCCaF stated regime)
+    10.0:1    +5.61%  [ +4.75%,  +6.49%]     +0.0419
+     3.5:1    +4.53%  [ +3.21%,  +5.87%]     +0.0467  5*lambda_t (DeCCaF stress case)
+     2.0:1    +0.32%  [ -1.43%,  +2.09%]     +0.0035
+
+wrote results/cost_ratio_sweep.json

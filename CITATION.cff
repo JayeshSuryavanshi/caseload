@@ -6,6 +6,18 @@ authors:
   - family-names: Suryavanshi
     given-names: Jayesh
 version: 0.1.0
+date-released: "2026-09-25"
+abstract: >-
+  Reinforcement learning environments for budgeted fraud investigation: deciding where
+  to point scarce human review, and when, while the fraud population moves. The first
+  environment is selective labels under a regime break, where investigating a case is
+  the only way to reveal its label, so a policy that spends its whole budget on the
+  highest-scoring cases stops learning when the fraud population shifts. It trains on
+  procedurally generated drift and evaluates zero-shot on the real regime break in the
+  Elliptic Bitcoin transaction graph. The second is capacity-constrained routing of
+  synthetic bank-account-opening fraud alerts to 50 synthetic analysts on Feedzai's
+  FiFAR dataset. Both share an evaluation harness with interquartile means,
+  stratified bootstrap intervals, paired differences and oracle ceilings.
 license: BSD-3-Clause
 repository-code: "https://github.com/JayeshSuryavanshi/caseload"
 keywords:

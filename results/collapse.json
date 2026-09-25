@@ -1,0 +1,221 @@
+{
+  "command": "python scripts/measure_collapse.py",
+  "config": {
+    "warm_until": 34,
+    "max_iter": 300,
+    "break_time": 43,
+    "per_step_budget": 0.02,
+    "refit_on_t_upto": 44,
+    "recovery_window": [
+      45,
+      49
+    ]
+  },
+  "data": {
+    "archive": "elliptic_parsed.npz",
+    "sha256": "c9bedd7e5e8817689d2872ec5fec63560624947310afe922e080da358bfa6365",
+    "transactions": 203769,
+    "features": 165,
+    "time_steps": 49,
+    "labelled": 46564,
+    "illicit": 4545
+  },
+  "frozen_detector": {
+    "heldout_auprc": 0.8075286845245683,
+    "heldout_auroc": 0.9373905889446309
+  },
+  "per_step": [
+    {
+      "t": 35,
+      "labelled": 1341,
+      "illicit": 182,
+      "found": 95,
+      "budget": 110,
+      "recall": 0.521978021978022,
+      "precision": 0.8636363636363636
+    },
+    {
+      "t": 36,
+      "labelled": 1708,
+      "illicit": 33,
+      "found": 30,
+      "budget": 128,
+      "recall": 0.9090909090909091,
+      "precision": 0.234375
+    },
+    {
+      "t": 37,
+      "labelled": 498,
+      "illicit": 40,
+      "found": 24,
+      "budget": 66,
+      "recall": 0.6,
+      "precision": 0.36363636363636365
+    },
+    {
+      "t": 38,
+      "labelled": 756,
+      "illicit": 111,
+      "found": 50,
+      "budget": 58,
+      "recall": 0.45045045045045046,
+      "precision": 0.8620689655172413
+    },
+    {
+      "t": 39,
+      "labelled": 1183,
+      "illicit": 81,
+      "found": 29,
+      "budget": 55,
+      "recall": 0.35802469135802467,
+      "precision": 0.5272727272727272
+    },
+    {
+      "t": 40,
+      "labelled": 1211,
+      "illicit": 112,
+      "found": 52,
+      "budget": 90,
+      "recall": 0.4642857142857143,
+      "precision": 0.5777777777777777
+    },
+    {
+      "t": 41,
+      "labelled": 1132,
+      "illicit": 116,
+      "found": 55,
+      "budget": 107,
+      "recall": 0.47413793103448276,
+      "precision": 0.514018691588785
+    },
+    {
+      "t": 42,
+      "labelled": 2154,
+      "illicit": 239,
+      "found": 93,
+      "budget": 143,
+      "recall": 0.3891213389121339,
+      "precision": 0.6503496503496503
+    },
+    {
+      "t": 43,
+      "labelled": 1370,
+      "illicit": 24,
+      "found": 0,
+      "budget": 101,
+      "recall": 0.0,
+      "precision": 0.0
+    },
+    {
+      "t": 44,
+      "labelled": 1591,
+      "illicit": 24,
+      "found": 0,
+      "budget": 100,
+      "recall": 0.0,
+      "precision": 0.0
+    },
+    {
+      "t": 45,
+      "labelled": 1221,
+      "illicit": 5,
+      "found": 0,
+      "budget": 112,
+      "recall": 0.0,
+      "precision": 0.0
+    },
+    {
+      "t": 46,
+      "labelled": 712,
+      "illicit": 2,
+      "found": 1,
+      "budget": 70,
+      "recall": 0.5,
+      "precision": 0.014285714285714285
+    },
+    {
+      "t": 47,
+      "labelled": 846,
+      "illicit": 22,
+      "found": 0,
+      "budget": 102,
+      "recall": 0.0,
+      "precision": 0.0
+    },
+    {
+      "t": 48,
+      "labelled": 471,
+      "illicit": 36,
+      "found": 0,
+      "budget": 59,
+      "recall": 0.0,
+      "precision": 0.0
+    },
+    {
+      "t": 49,
+      "labelled": 476,
+      "illicit": 56,
+      "found": 1,
+      "budget": 49,
+      "recall": 0.017857142857142856,
+      "precision": 0.02040816326530612
+    }
+  ],
+  "post_break": {
+    "steps": [
+      43,
+      49
+    ],
+    "found": 2,
+    "illicit": 169,
+    "steps_at_zero": 5
+  },
+  "recovery": [
+    {
+      "budget_frac": 0.02,
+      "frozen_found": 2,
+      "frozen_recall": 0.01652892561983471,
+      "illicit": 121,
+      "refit_found": 6,
+      "refit_recall": 0.049586776859504134,
+      "random_found": 2,
+      "random_recall": 0.01652892561983471
+    },
+    {
+      "budget_frac": 0.05,
+      "frozen_found": 2,
+      "frozen_recall": 0.01652892561983471,
+      "illicit": 121,
+      "refit_found": 22,
+      "refit_recall": 0.18181818181818182,
+      "random_found": 7,
+      "random_recall": 0.05785123966942149
+    },
+    {
+      "budget_frac": 0.1,
+      "frozen_found": 4,
+      "frozen_recall": 0.03305785123966942,
+      "illicit": 121,
+      "refit_found": 60,
+      "refit_recall": 0.49586776859504134,
+      "random_found": 6,
+      "random_recall": 0.049586776859504134
+    },
+    {
+      "budget_frac": 0.2,
+      "frozen_found": 7,
+      "frozen_recall": 0.05785123966942149,
+      "illicit": 121,
+      "refit_found": 93,
+      "refit_recall": 0.768595041322314,
+      "random_found": 33,
+      "random_recall": 0.2727272727272727
+    }
+  ],
+  "versions": {
+    "python": "3.13.9",
+    "numpy": "2.5.3",
+    "scikit-learn": "1.9.1"
+  },
+  "wall_seconds": 23.3
+}

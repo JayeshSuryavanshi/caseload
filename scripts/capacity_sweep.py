@@ -12,7 +12,14 @@ alerts down to 400, so dividing by the number of remaining batches under-reviews
 big ones. Measured against even pacing, almost anything wins, and that would be a
 result about a bad allocation rule rather than about sequential planning.
 
-    python scripts/capacity_sweep.py --scenarios 8
+Costs are at FiFAR's stated regime, lambda_t = 0.057, unless ``--fp-cost`` says
+otherwise, and the automated threshold is refitted to that cost on the scenarios'
+alerts so that review is not credited with fixing a mistuned model. All 25 shipped
+training scenarios are used by default. They hold the same 26,165 alerts in five
+batch orders for five analyst teams, so the intervals below cover order and team,
+not the sampling of alerts; ``scripts/cost_ratio_sweep.py`` resamples both.
+
+    python scripts/capacity_sweep.py
 """
 
 from __future__ import annotations
@@ -25,7 +32,15 @@ import numpy as np
 
 from caseload.envs import fifar
 from caseload.evaluation import bootstrap_interval, paired_difference
-from caseload.triage import BAND_GRID, PACE_GRID, TriageConfig, TriageMDP
+from caseload.triage import (
+    ALERT_THRESHOLD,
+    BAND_GRID,
+    LAMBDA_T,
+    PACE_GRID,
+    TriageConfig,
+    TriageMDP,
+    cost_optimal_threshold,
+)
 
 EVEN = PACE_GRID.index(1.0)
 
@@ -102,8 +117,13 @@ def run(data, scenario, policy, cfg: TriageConfig, seed: int = 0):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--scenarios", type=int, default=8)
-    ap.add_argument("--fp-cost", type=float, default=0.05)
+    ap.add_argument("--scenarios", type=int, default=25)
+    ap.add_argument("--fp-cost", type=float, default=LAMBDA_T)
+    ap.add_argument(
+        "--fixed-threshold",
+        action="store_true",
+        help=f"keep the alert threshold {ALERT_THRESHOLD} instead of refitting it",
+    )
     ap.add_argument(
         "--out", type=pathlib.Path, default=pathlib.Path("results/capacity_sweep.json")
     )
@@ -112,7 +132,14 @@ def main() -> None:
     data = fifar.load()
     names = [f"shuffle_{i}#team_{t}" for i in (1, 2, 3, 4, 5) for t in (1, 2, 3, 4, 5)]
     names = names[: a.scenarios]
-    cfg = TriageConfig(fp_cost=a.fp_cost)
+    # every training scenario holds the same alerts, so one refit serves them all
+    rows = np.unique(np.concatenate(fifar.load_scenario(data, names[0], "train_alert").batches))
+    th = (
+        ALERT_THRESHOLD
+        if a.fixed_threshold
+        else cost_optimal_threshold(data.score[rows], data.y[rows], 1.0, a.fp_cost)
+    )
+    cfg = TriageConfig(fp_cost=a.fp_cost, threshold=th)
     ratios = [0.02, 0.05, 0.10, 0.20, 0.40, 0.70, 1.00]
     policies = [
         Proportional(),
@@ -123,9 +150,18 @@ def main() -> None:
         FrontLoaded(),
     ]
 
-    print(f"FiFAR, {len(names)} scenarios, fp_cost={a.fp_cost} (fn_cost=1.0)")
+    print(
+        f"FiFAR, {len(names)} training scenarios, fp_cost={a.fp_cost} (fn_cost=1.0), "
+        f"threshold {th:.4f} ({'fixed' if a.fixed_threshold else 'refit to the cost'})"
+    )
     print("saving = fraction of the model-only cost removed by review\n")
-    out: dict = {"ratios": ratios, "fp_cost": a.fp_cost, "data": {}}
+    out: dict = {
+        "ratios": ratios,
+        "fp_cost": a.fp_cost,
+        "threshold": th,
+        "scenarios": names,
+        "data": {},
+    }
     for ratio in ratios:
         scen = [
             fifar.load_scenario(data, n, "train_alert", capacity_ratio=ratio) for n in names
@@ -161,13 +197,12 @@ def main() -> None:
                 sig = "  (worse per review)"
             else:
                 sig = "  (same per review)"
-            dp = paired_difference(np.asarray(per[pol.name]), np.asarray(per[ref]), reps=4000)
             print(
                 f"  {pol.name:28} {ci.point:7.3f} [{ci.lo:.3f}, {ci.hi:.3f}]"
                 f"  used {np.mean(spend[pol.name]):6.1%}"
                 f"  per-review {np.mean(per[pol.name]):7.4f}"
                 f"   d_total {d.point:+.3f}"
-                f"  d_per_review {dp.point:+.4f} [{dp.lo:+.4f}, {dp.hi:+.4f}]{sig}"
+                f"  d_per_review {dpi.point:+.4f} [{dpi.lo:+.4f}, {dpi.hi:+.4f}]{sig}"
             )
         print()
 

@@ -1,6 +1,16 @@
 """README figures, in light and dark variants so they read on either GitHub theme.
 
-Both are drawn from the committed result files, never from hand-typed numbers.
+Every plotted value is read from a committed result file; nothing here is a number
+typed by hand. The collapse figure reads ``results/collapse.json`` (written by
+``scripts/measure_collapse.py``). The tradeoff figure reads
+``results/fleet/eval_s*.json`` (written by ``scripts/evaluate_fleet.sh``) and uses the
+same statistic as ``scripts/aggregate_fleet.py``: the IQM over each seed's evaluation
+episodes, then the IQM over training seeds.
+
+    python scripts/make_figures.py      # writes docs/img/{collapse,tradeoff}-{light,dark}.png
+
+The tradeoff figure's plotted points are also written to ``results/tradeoff_points.json``
+and printed, so the numbers quoted about the figure come from a file.
 """
 
 from __future__ import annotations
@@ -14,7 +24,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-OUT = pathlib.Path("docs/img")
+from caseload.evaluation import bootstrap_interval, iqm  # noqa: E402
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+OUT = ROOT / "docs" / "img"
+COLLAPSE = ROOT / "results" / "collapse.json"
+FLEET = ROOT / "results" / "fleet"
+POINTS = ROOT / "results" / "tradeoff_points.json"
 THEMES = {
     "light": dict(bg="#ffffff", ink="#1f2328", soft="#59636e", grid="#d1d9e0"),
     "dark": dict(bg="#0d1117", ink="#e6edf3", soft="#9198a1", grid="#30363d"),
@@ -23,6 +39,8 @@ ACCENT = "#2f81f7"
 GOOD = "#3fb950"
 WARN = "#d29922"
 MUTED = "#8b949e"
+# matplotlib embeds the build time otherwise, so identical inputs give identical files
+SAVE = dict(dpi=200, bbox_inches="tight", pad_inches=0.18, metadata={"Software": None})
 
 
 def style(t: dict) -> None:
@@ -44,150 +62,240 @@ def style(t: dict) -> None:
     )
 
 
-def fig_collapse(name: str, t: dict) -> None:
-    """The motivating measurement: a frozen detector hits exactly zero and stays there."""
-    steps = list(range(35, 50))
-    recall = [
-        0.588,
-        0.879,
-        0.475,
-        0.459,
-        0.333,
-        0.438,
-        0.543,
-        0.377,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-    ]
-    fig, ax = plt.subplots(figsize=(7.2, 3.4))
-    ax.axvspan(42.5, 49.5, color=WARN, alpha=0.10, lw=0)
+def _pct(ax) -> None:
+    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+
+
+def fig_collapse(name: str, t: dict, res: dict) -> None:
+    """Per-step recall of the frozen detector, and what refitting after the break recovers."""
+    cfg = res["config"]
+    rows = res["per_step"]
+    brk = cfg["break_time"]
+    steps = [r["t"] for r in rows]
+    recall = [r["recall"] for r in rows]
+    pb = res["post_break"]
+
+    fig, (ax, bx) = plt.subplots(
+        1, 2, figsize=(9.6, 3.6), gridspec_kw=dict(width_ratios=[2.3, 1], wspace=0.28)
+    )
+    ax.axvspan(brk - 0.5, steps[-1] + 0.5, color=WARN, alpha=0.10, lw=0)
     ax.plot(steps, recall, "-o", color=ACCENT, ms=5, lw=2, zorder=3)
-    ax.axhline(0, color=t["soft"], lw=0.8, ls=(0, (3, 3)))
+    for r in rows:
+        if r["t"] >= brk:
+            # found/illicit under each post-break point, above it where it peaks
+            up = r["recall"] > 0.1
+            ax.annotate(
+                f"{r['found']}/{r['illicit']}",
+                (r["t"], r["recall"]),
+                textcoords="offset points",
+                xytext=(0, 9 if up else -10),
+                ha="center",
+                va="bottom" if up else "top",
+                fontsize=7.5,
+                color=t["soft"],
+            )
     ax.annotate(
-        "regime break at t=43:\nseven consecutive steps at exactly 0%",
-        xy=(43, 0.0),
-        xytext=(44.2, 0.42),
+        f"dark-market shutdown at t={brk}\n{pb['found']} of {pb['illicit']} illicit found "
+        f"over t={pb['steps'][0]}-{pb['steps'][1]}",
+        xy=(brk - 0.3, 0.93),
         fontsize=9,
         color=t["ink"],
         ha="left",
-        arrowprops=dict(
-            arrowstyle="->", color=t["soft"], lw=1.0, connectionstyle="arc3,rad=-0.25"
-        ),
+        va="top",
     )
-    ax.annotate(
-        "hindsight ceiling 56%",
-        xy=(47, 0.562),
-        xytext=(45.4, 0.60),
-        fontsize=9,
-        color=GOOD,
-        ha="left",
-    )
-    ax.axhline(0.562, xmin=0.66, color=GOOD, lw=1.4, ls=(0, (4, 3)))
     ax.set_xlabel("Elliptic time step")
-    ax.set_ylabel("recall at a 2% budget")
-    ax.set_xlim(34.4, 49.8)
-    ax.set_ylim(-0.04, 0.95)
-    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
-    ax.grid(axis="y", color=t["grid"], lw=0.7, alpha=0.7)
-    ax.set_axisbelow(True)
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.set_title(
-        "A frozen fraud detector does not degrade. It stops working.",
-        loc="left",
+    ax.set_ylabel(f"recall at a {cfg['per_step_budget']:.0%} budget")
+    ax.set_xlim(steps[0] - 0.6, steps[-1] + 0.8)
+    ax.set_ylim(-0.1, 1.0)
+    ax.set_yticks(np.arange(0, 1.01, 0.2))
+    _pct(ax)
+    ax.set_title(f"Detector frozen on t≤{cfg['warm_until']}", loc="left", fontsize=10, pad=8)
+
+    rec = res["recovery"]
+    budgets = [r["budget_frac"] for r in rec]
+    lo, hi = cfg["recovery_window"]
+    for key, label, colour, lw in (
+        ("refit", f"refit on t≤{cfg['refit_on_t_upto']}", GOOD, 2),
+        ("frozen", f"frozen on t≤{cfg['warm_until']}", ACCENT, 2),
+        ("random", "random", MUTED, 1.2),
+    ):
+        ys = [r[f"{key}_recall"] for r in rec]
+        bx.plot(budgets, ys, "-o", color=colour, ms=4, lw=lw, zorder=3)
+        bx.annotate(
+            label,
+            (budgets[-1], ys[-1]),
+            textcoords="offset points",
+            xytext=(-4, -13 if key == "frozen" else 7),
+            ha="right",
+            fontsize=8.5,
+            color=colour,
+        )
+    bx.set_xticks(budgets)
+    bx.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    bx.set_xlabel("budget")
+    bx.set_ylabel(f"recall on t={lo}-{hi}")
+    bx.set_ylim(-0.1, 1.0)
+    bx.set_yticks(np.arange(0, 1.01, 0.2))
+    _pct(bx)
+    bx.set_title("Is it recoverable?", loc="left", fontsize=10, pad=8)
+
+    for a in (ax, bx):
+        a.grid(axis="y", color=t["grid"], lw=0.7, alpha=0.7)
+        a.set_axisbelow(True)
+        a.spines[["top", "right"]].set_visible(False)
+    fig.suptitle(
+        "A detector frozen before the break finds almost nothing after it.",
+        x=0.07,
+        ha="left",
         fontsize=11,
         color=t["ink"],
-        pad=10,
+        y=1.04,
     )
-    fig.savefig(OUT / name, dpi=200, bbox_inches="tight", pad_inches=0.18)
+    fig.savefig(OUT / name, **SAVE)
     plt.close(fig)
 
 
-def _fleet_ppo() -> tuple[float, float] | None:
-    """PPO's pre/post recall averaged over every trained seed in the fleet."""
-    files = sorted(pathlib.Path("results/fleet").glob("eval_s*.json"))
+def fleet_points() -> tuple[
+    dict[str, tuple[float, float]], dict[str, list[float]], dict[str, list[float]]
+]:
+    """Pre- and post-break recall per policy: IQM over episodes, then IQM over seeds.
+
+    Also returns the per-seed values, from which the interval on ``ppo`` is drawn.
+    """
+    files = sorted(FLEET.glob("eval_s*.json"))
     if not files:
-        return None
-    pre, post = [], []
+        raise SystemExit(f"no eval_s*.json under {FLEET}; run scripts/evaluate_fleet.sh")
+    pre: dict[str, list[float]] = {}
+    post: dict[str, list[float]] = {}
     for f in files:
         d = json.loads(f.read_text())["drift"]
-        if "ppo" not in d["pre"]:
-            continue
-        pre.append(float(np.mean(d["pre"]["ppo"])))
-        post.append(float(np.mean(d["post"]["ppo"])))
-    if not pre:
-        return None
-    return float(np.mean(pre)), float(np.mean(post))
+        for n, v in d["pre"].items():
+            pre.setdefault(n, []).append(iqm(np.asarray(v)))
+        for n, v in d["post"].items():
+            post.setdefault(n, []).append(iqm(np.asarray(v)))
+    return {n: (iqm(np.asarray(pre[n])), iqm(np.asarray(post[n]))) for n in pre}, pre, post
+
+
+def write_points() -> None:
+    pts, pre, post = fleet_points()
+    rows: dict[str, dict] = {}
+    print(
+        f"{'policy':28} {'pre-break':>10} {'post-break':>11}  (IQM over episodes, then seeds)"
+    )
+    for n, (x, y) in pts.items():
+        row: dict = {"pre": x, "post": y, "seeds": len(pre[n])}
+        extra = ""
+        if n == "ppo":
+            cx = bootstrap_interval(np.asarray(pre[n]), reps=8000)
+            cy = bootstrap_interval(np.asarray(post[n]), reps=8000)
+            row["pre_ci"], row["post_ci"] = [cx.lo, cx.hi], [cy.lo, cy.hi]
+            extra = (
+                f"  seed interval pre [{cx.lo:.3f}, {cx.hi:.3f}], "
+                f"post [{cy.lo:.3f}, {cy.hi:.3f}]"
+            )
+        rows[n] = row
+        print(f"{n:28} {x:>10.3f} {y:>11.3f}{extra}")
+    POINTS.write_text(json.dumps(rows, indent=1) + "\n")
+
+
+# where each label sits relative to its point, in points; the right-hand cluster is
+# too tight for labels beside the markers, so those get a leader line
+LABELS = {
+    "top-k": ("top-k", (34, -14), "left"),
+    "eps-explore(0.15)": ("eps-explore(.15)", (40, -4), "left"),
+    "eps-explore(0.35)": ("eps-explore(.35)", (0, -16), "center"),
+    "eps-explore(0.6)": ("eps-explore(.6)", (0, -16), "center"),
+    "yield-triggered(drop=0.5)": ("yield-triggered", (42, 12), "left"),
+}
 
 
 def fig_tradeoff(name: str, t: dict) -> None:
-    """Every policy trades pre-break recall against post-break recall. Nobody gets both."""
-    # (label, pre, post, colour, label offset in points)
-    pts = [
-        ("top-k", 0.953, 0.042, MUTED, (14, -6), "left"),
-        ("eps-explore(.15)", 0.924, 0.088, MUTED, (-12, -4), "right"),
-        ("eps-explore(.35)", 0.856, 0.116, MUTED, (-12, -2), "right"),
-        ("eps-explore(.6)", 0.694, 0.152, MUTED, (0, -18), "center"),
-        ("yield-triggered", 0.921, 0.105, WARN, (0, -20), "center"),
-    ]
-    ppo = _fleet_ppo() or (0.941, 0.197)
+    """Every fixed rule trades pre-break recall against post-break recall."""
+    pts, pre, post = fleet_points()
     fig, ax = plt.subplots(figsize=(6.8, 4.6))
-    for n, x, y, c, off, ha in pts:
+    for n, (x, y) in pts.items():
+        if n == "ppo":
+            continue
+        label, off, ha = LABELS.get(n, (n, (0, 10), "center"))
+        c = WARN if n.startswith("yield") else MUTED
         ax.scatter([x], [y], s=95, color=c, zorder=3, edgecolor=t["bg"], linewidth=1.4)
         ax.annotate(
-            n,
+            label,
             (x, y),
             textcoords="offset points",
             xytext=off,
             ha=ha,
+            va="center",
             fontsize=9,
             color=t["soft"],
+            arrowprops=dict(arrowstyle="-", color=t["grid"], lw=0.8, shrinkA=2, shrinkB=6)
+            if abs(off[0]) > 20
+            else None,
         )
-    ax.scatter(
-        [ppo[0]], [ppo[1]], s=220, color=ACCENT, zorder=4, edgecolor=t["bg"], linewidth=1.6
+    if "ppo" in pts:
+        x, y = pts["ppo"]
+        # the interval is over training seeds: the baselines do not depend on the seed
+        cx = bootstrap_interval(np.asarray(pre["ppo"]), reps=8000)
+        cy = bootstrap_interval(np.asarray(post["ppo"]), reps=8000)
+        ax.errorbar(
+            [x],
+            [y],
+            xerr=[[x - cx.lo], [cx.hi - x]],
+            yerr=[[y - cy.lo], [cy.hi - y]],
+            fmt="none",
+            ecolor=ACCENT,
+            elinewidth=1.2,
+            capsize=3,
+            zorder=3,
+        )
+        ax.scatter([x], [y], s=220, color=ACCENT, zorder=4, edgecolor=t["bg"], linewidth=1.6)
+        ax.annotate(
+            f"ppo ({len(pre['ppo'])} seeds)",
+            (x, y),
+            textcoords="offset points",
+            xytext=(0, 18),
+            ha="center",
+            fontsize=10.5,
+            color=ACCENT,
+            fontweight="bold",
+        )
+    eps = sorted(
+        (float(n[len("eps-explore(") : -1]), n) for n in pts if n.startswith("eps-explore(")
     )
-    ax.annotate(
-        "ppo",
-        (ppo[0], ppo[1]),
-        textcoords="offset points",
-        xytext=(0, 16),
-        ha="center",
-        fontsize=10.5,
-        color=ACCENT,
-        fontweight="bold",
-    )
-    ax.scatter([0.987], [0.996], s=150, marker="*", color=GOOD, zorder=3)
-    ax.annotate(
-        "oracle ceiling",
-        (0.987, 0.996),
-        textcoords="offset points",
-        xytext=(-10, -4),
-        ha="right",
-        fontsize=9,
-        color=GOOD,
-    )
-    ax.annotate(
-        "more exploration",
-        xy=(0.70, 0.168),
-        xytext=(0.76, 0.30),
-        fontsize=8.5,
-        color=t["soft"],
-        ha="center",
-        arrowprops=dict(arrowstyle="->", color=t["grid"], lw=1.0),
-    )
+    if len(eps) >= 2:
+        (x0, y0), (x1, y1) = pts[eps[0][1]], pts[eps[-1][1]]
+        ax.annotate(
+            "",
+            xy=(x1, y1),
+            xytext=(x0, y0),
+            arrowprops=dict(
+                arrowstyle="->",
+                color=t["grid"],
+                lw=1.0,
+                connectionstyle="arc3,rad=0.2",
+                shrinkA=14,
+                shrinkB=14,
+            ),
+        )
+        ax.annotate(
+            "more exploration",
+            ((x0 + x1) / 2, (y0 + y1) / 2),
+            textcoords="offset points",
+            xytext=(0, 26),
+            ha="center",
+            fontsize=8.5,
+            color=t["soft"],
+        )
     ax.set_xlabel("recall before the break")
     ax.set_ylabel("recall after the break")
     ax.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
-    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    _pct(ax)
     ax.grid(color=t["grid"], lw=0.7, alpha=0.7)
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
-    ax.set_xlim(0.63, 1.06)
-    ax.set_ylim(-0.03, 1.12)
+    ax.set_xlim(0.6, 1.13)
+    ax.set_xticks(np.arange(0.6, 1.001, 0.05))
+    ax.set_ylim(-0.03, 1.02)
     ax.set_title(
         "No fixed rule is good at both, and the corner is empty.",
         loc="left",
@@ -195,14 +303,16 @@ def fig_tradeoff(name: str, t: dict) -> None:
         color=t["ink"],
         pad=10,
     )
-    fig.savefig(OUT / name, dpi=200, bbox_inches="tight", pad_inches=0.18)
+    fig.savefig(OUT / name, **SAVE)
     plt.close(fig)
 
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
+    collapse = json.loads(COLLAPSE.read_text())
     for label, t in THEMES.items():
         style(t)
-        fig_collapse(f"collapse-{label}.png", t)
+        fig_collapse(f"collapse-{label}.png", t, collapse)
         fig_tradeoff(f"tradeoff-{label}.png", t)
+    write_points()
     print("wrote:", ", ".join(sorted(p.name for p in OUT.glob("*.png"))))

@@ -1,61 +1,61 @@
-FiFAR, 8 scenarios, fp_cost=0.05 (fn_cost=1.0)
+FiFAR, 25 training scenarios, fp_cost=0.057 (fn_cost=1.0), threshold 0.0543 (refit to the cost)
 saving = fraction of the model-only cost removed by review
 
 --- capacity = 2% of alerts ---
-  proportional/near-threshold    0.034 [0.033, 0.034]  used  95.0%  per-review  0.1865   (reference)
-  even/near-threshold            0.029 [0.028, 0.029]  used 100.0%  per-review  0.1524   d_total -0.005  d_per_review -0.0347 [-0.0374, -0.0312]  (worse per review)
-  even/top-score                 0.004 [0.002, 0.005]  used 100.0%  per-review  0.0188   d_total -0.030  d_per_review -0.1658 [-0.1755, -0.1611]  (worse per review)
-  even/mixed                     0.019 [0.019, 0.019]  used 100.0%  per-review  0.1013   d_total -0.014  d_per_review -0.0855 [-0.0876, -0.0822]  (worse per review)
-  size-aware/near-threshold      0.035 [0.035, 0.036]  used  97.9%  per-review  0.1897   d_total +0.001  d_per_review +0.0023 [+0.0000, +0.0084]  <-- better per review
-  front-loaded/near-threshold    0.023 [0.023, 0.024]  used 100.0%  per-review  0.1250   d_total -0.010  d_per_review -0.0619 [-0.0640, -0.0582]  (worse per review)
+  proportional/near-threshold    0.004 [0.003, 0.004]  used  94.6%  per-review  0.0098   (reference)
+  even/near-threshold            0.003 [0.003, 0.004]  used 100.0%  per-review  0.0087   d_total -0.000  d_per_review -0.0006 [-0.0025, +0.0006]  (same per review)
+  even/top-score                 0.002 [0.001, 0.003]  used 100.0%  per-review  0.0050   d_total -0.002  d_per_review -0.0045 [-0.0072, -0.0019]  (worse per review)
+  even/mixed                     0.002 [0.002, 0.002]  used 100.0%  per-review  0.0047   d_total -0.002  d_per_review -0.0049 [-0.0069, -0.0031]  (worse per review)
+  size-aware/near-threshold      0.003 [0.003, 0.004]  used  97.5%  per-review  0.0084   d_total -0.000  d_per_review -0.0012 [-0.0023, -0.0005]  (worse per review)
+  front-loaded/near-threshold    0.003 [0.003, 0.004]  used 100.0%  per-review  0.0090   d_total -0.000  d_per_review -0.0007 [-0.0015, -0.0000]  (worse per review)
 
 --- capacity = 5% of alerts ---
-  proportional/near-threshold    0.090 [0.089, 0.090]  used  95.0%  per-review  0.1999   (reference)
-  even/near-threshold            0.082 [0.081, 0.083]  used 100.0%  per-review  0.1734   d_total -0.008  d_per_review -0.0261 [-0.0305, -0.0237]  (worse per review)
-  even/top-score                 0.067 [0.067, 0.068]  used 100.0%  per-review  0.1427   d_total -0.022  d_per_review -0.0566 [-0.0595, -0.0551]  (worse per review)
-  even/mixed                     0.054 [0.053, 0.056]  used 100.0%  per-review  0.1142   d_total -0.036  d_per_review -0.0858 [-0.0881, -0.0829]  (worse per review)
-  size-aware/near-threshold      0.091 [0.091, 0.092]  used  97.9%  per-review  0.1974   d_total +0.002  d_per_review -0.0025 [-0.0027, -0.0023]  (worse per review)
-  front-loaded/near-threshold    0.064 [0.063, 0.064]  used 100.0%  per-review  0.1346   d_total -0.026  d_per_review -0.0652 [-0.0669, -0.0636]  (worse per review)
+  proportional/near-threshold    0.014 [0.013, 0.015]  used  94.7%  per-review  0.0148   (reference)
+  even/near-threshold            0.012 [0.010, 0.014]  used 100.0%  per-review  0.0123   d_total -0.001  d_per_review -0.0020 [-0.0043, -0.0003]  (worse per review)
+  even/top-score                 0.007 [0.006, 0.008]  used 100.0%  per-review  0.0066   d_total -0.008  d_per_review -0.0083 [-0.0101, -0.0063]  (worse per review)
+  even/mixed                     0.011 [0.009, 0.012]  used 100.0%  per-review  0.0104   d_total -0.004  d_per_review -0.0043 [-0.0059, -0.0029]  (worse per review)
+  size-aware/near-threshold      0.011 [0.010, 0.011]  used  97.4%  per-review  0.0107   d_total -0.004  d_per_review -0.0041 [-0.0046, -0.0036]  (worse per review)
+  front-loaded/near-threshold    0.012 [0.011, 0.013]  used 100.0%  per-review  0.0119   d_total -0.002  d_per_review -0.0030 [-0.0034, -0.0025]  (worse per review)
 
 --- capacity = 10% of alerts ---
-  proportional/near-threshold    0.162 [0.161, 0.164]  used  95.0%  per-review  0.1808   (reference)
-  even/near-threshold            0.149 [0.149, 0.150]  used 100.0%  per-review  0.1581   d_total -0.013  d_per_review -0.0229 [-0.0245, -0.0205]  (worse per review)
-  even/top-score                 0.146 [0.145, 0.147]  used 100.0%  per-review  0.1543   d_total -0.016  d_per_review -0.0263 [-0.0289, -0.0239]  (worse per review)
-  even/mixed                     0.107 [0.107, 0.108]  used 100.0%  per-review  0.1133   d_total -0.055  d_per_review -0.0677 [-0.0688, -0.0662]  (worse per review)
-  size-aware/near-threshold      0.163 [0.162, 0.164]  used  97.9%  per-review  0.1765   d_total +0.001  d_per_review -0.0048 [-0.0055, -0.0030]  (worse per review)
-  front-loaded/near-threshold    0.113 [0.112, 0.113]  used 100.0%  per-review  0.1191   d_total -0.050  d_per_review -0.0620 [-0.0630, -0.0602]  (worse per review)
+  proportional/near-threshold    0.033 [0.031, 0.035]  used  94.6%  per-review  0.0175   (reference)
+  even/near-threshold            0.032 [0.030, 0.035]  used 100.0%  per-review  0.0160   d_total -0.001  d_per_review -0.0014 [-0.0022, -0.0006]  (worse per review)
+  even/top-score                 0.017 [0.015, 0.018]  used 100.0%  per-review  0.0085   d_total -0.017  d_per_review -0.0094 [-0.0107, -0.0076]  (worse per review)
+  even/mixed                     0.025 [0.022, 0.026]  used 100.0%  per-review  0.0119   d_total -0.010  d_per_review -0.0058 [-0.0067, -0.0047]  (worse per review)
+  size-aware/near-threshold      0.036 [0.035, 0.038]  used  97.4%  per-review  0.0189   d_total +0.003  d_per_review +0.0013 [+0.0010, +0.0016]  <-- better per review
+  front-loaded/near-threshold    0.038 [0.037, 0.040]  used 100.0%  per-review  0.0193   d_total +0.005  d_per_review +0.0018 [+0.0014, +0.0022]  <-- better per review
 
 --- capacity = 20% of alerts ---
-  proportional/near-threshold    0.275 [0.273, 0.279]  used  95.0%  per-review  0.1537   (reference)
-  even/near-threshold            0.255 [0.252, 0.258]  used  93.4%  per-review  0.1446   d_total -0.021  d_per_review -0.0091 [-0.0102, -0.0081]  (worse per review)
-  even/top-score                 0.255 [0.253, 0.257]  used  93.4%  per-review  0.1443   d_total -0.022  d_per_review -0.0096 [-0.0106, -0.0083]  (worse per review)
-  even/mixed                     0.202 [0.200, 0.204]  used  93.4%  per-review  0.1144   d_total -0.074  d_per_review -0.0392 [-0.0402, -0.0385]  (worse per review)
-  size-aware/near-threshold      0.278 [0.275, 0.282]  used  97.8%  per-review  0.1506   d_total +0.003  d_per_review -0.0029 [-0.0039, -0.0025]  (worse per review)
-  front-loaded/near-threshold    0.187 [0.185, 0.190]  used 100.0%  per-review  0.0990   d_total -0.089  d_per_review -0.0545 [-0.0554, -0.0540]  (worse per review)
+  proportional/near-threshold    0.075 [0.072, 0.077]  used  94.6%  per-review  0.0194   (reference)
+  even/near-threshold            0.075 [0.072, 0.078]  used  93.4%  per-review  0.0200   d_total +0.002  d_per_review +0.0008 [+0.0002, +0.0012]  <-- better per review
+  even/top-score                 0.037 [0.035, 0.041]  used  93.4%  per-review  0.0102   d_total -0.037  d_per_review -0.0096 [-0.0104, -0.0086]  (worse per review)
+  even/mixed                     0.059 [0.056, 0.062]  used  93.4%  per-review  0.0159   d_total -0.015  d_per_review -0.0037 [-0.0047, -0.0025]  (worse per review)
+  size-aware/near-threshold      0.078 [0.076, 0.080]  used  97.4%  per-review  0.0197   d_total +0.003  d_per_review +0.0003 [+0.0000, +0.0005]  <-- better per review
+  front-loaded/near-threshold    0.078 [0.076, 0.079]  used 100.0%  per-review  0.0191   d_total +0.003  d_per_review -0.0003 [-0.0006, -0.0000]  (worse per review)
 
 --- capacity = 40% of alerts ---
-  proportional/near-threshold    0.433 [0.428, 0.436]  used  95.0%  per-review  0.1204   (reference)
-  even/near-threshold            0.411 [0.409, 0.415]  used  89.5%  per-review  0.1217   d_total -0.019  d_per_review +0.0016 [+0.0003, +0.0022]  <-- better per review
-  even/top-score                 0.411 [0.409, 0.414]  used  89.5%  per-review  0.1216   d_total -0.020  d_per_review +0.0015 [+0.0002, +0.0023]  <-- better per review
-  even/mixed                     0.344 [0.340, 0.346]  used  89.5%  per-review  0.1013   d_total -0.089  d_per_review -0.0190 [-0.0200, -0.0181]  (worse per review)
-  size-aware/near-threshold      0.441 [0.436, 0.443]  used  97.9%  per-review  0.1188   d_total +0.007  d_per_review -0.0015 [-0.0021, -0.0010]  (worse per review)
-  front-loaded/near-threshold    0.305 [0.301, 0.307]  used 100.0%  per-review  0.0805   d_total -0.128  d_per_review -0.0399 [-0.0404, -0.0394]  (worse per review)
+  proportional/near-threshold    0.140 [0.134, 0.147]  used  94.6%  per-review  0.0186   (reference)
+  even/near-threshold            0.142 [0.135, 0.147]  used  89.5%  per-review  0.0195   d_total -0.002  d_per_review +0.0008 [+0.0002, +0.0016]  <-- better per review
+  even/top-score                 0.078 [0.074, 0.082]  used  89.5%  per-review  0.0109   d_total -0.062  d_per_review -0.0076 [-0.0084, -0.0068]  (worse per review)
+  even/mixed                     0.132 [0.124, 0.138]  used  89.5%  per-review  0.0182   d_total -0.012  d_per_review -0.0006 [-0.0012, +0.0001]  (same per review)
+  size-aware/near-threshold      0.146 [0.140, 0.151]  used  97.4%  per-review  0.0185   d_total +0.004  d_per_review -0.0001 [-0.0003, +0.0002]  (same per review)
+  front-loaded/near-threshold    0.152 [0.146, 0.156]  used 100.0%  per-review  0.0187   d_total +0.009  d_per_review +0.0001 [-0.0002, +0.0004]  (same per review)
 
 --- capacity = 70% of alerts ---
-  proportional/near-threshold    0.563 [0.555, 0.569]  used  95.0%  per-review  0.0894   (reference)
-  even/near-threshold            0.555 [0.546, 0.564]  used  87.9%  per-review  0.0953   d_total -0.006  d_per_review +0.0062 [+0.0048, +0.0070]  <-- better per review
-  even/top-score                 0.555 [0.546, 0.564]  used  87.9%  per-review  0.0954   d_total -0.006  d_per_review +0.0062 [+0.0048, +0.0070]  <-- better per review
-  even/mixed                     0.499 [0.493, 0.504]  used  87.9%  per-review  0.0858   d_total -0.062  d_per_review -0.0034 [-0.0048, -0.0027]  (worse per review)
-  size-aware/near-threshold      0.573 [0.564, 0.579]  used  97.9%  per-review  0.0882   d_total +0.010  d_per_review -0.0012 [-0.0018, -0.0008]  (worse per review)
-  front-loaded/near-threshold    0.456 [0.449, 0.461]  used 100.0%  per-review  0.0688   d_total -0.107  d_per_review -0.0207 [-0.0211, -0.0202]  (worse per review)
+  proportional/near-threshold    0.261 [0.245, 0.268]  used  94.6%  per-review  0.0191   (reference)
+  even/near-threshold            0.256 [0.240, 0.263]  used  87.9%  per-review  0.0201   d_total -0.006  d_per_review +0.0009 [+0.0007, +0.0013]  <-- better per review
+  even/top-score                 0.140 [0.129, 0.148]  used  87.9%  per-review  0.0111   d_total -0.119  d_per_review -0.0081 [-0.0087, -0.0074]  (worse per review)
+  even/mixed                     0.221 [0.207, 0.234]  used  87.9%  per-review  0.0177   d_total -0.036  d_per_review -0.0015 [-0.0022, -0.0007]  (worse per review)
+  size-aware/near-threshold      0.261 [0.247, 0.267]  used  97.0%  per-review  0.0186   d_total -0.000  d_per_review -0.0005 [-0.0006, -0.0003]  (worse per review)
+  front-loaded/near-threshold    0.266 [0.250, 0.272]  used 100.0%  per-review  0.0183   d_total +0.004  d_per_review -0.0008 [-0.0009, -0.0006]  (worse per review)
 
 --- capacity = 100% of alerts ---
-  proportional/near-threshold    0.649 [0.638, 0.652]  used  93.9%  per-review  0.0728   (reference)
-  even/near-threshold            0.647 [0.637, 0.650]  used  85.3%  per-review  0.0798   d_total -0.002  d_per_review +0.0070 [+0.0067, +0.0074]  <-- better per review
-  even/top-score                 0.647 [0.637, 0.650]  used  85.3%  per-review  0.0798   d_total -0.002  d_per_review +0.0070 [+0.0067, +0.0074]  <-- better per review
-  even/mixed                     0.626 [0.614, 0.630]  used  85.3%  per-review  0.0772   d_total -0.021  d_per_review +0.0046 [+0.0040, +0.0050]  <-- better per review
-  size-aware/near-threshold      0.665 [0.654, 0.666]  used  96.4%  per-review  0.0725   d_total +0.015  d_per_review -0.0002 [-0.0005, -0.0000]  (worse per review)
-  front-loaded/near-threshold    0.672 [0.662, 0.674]  used 100.0%  per-review  0.0707   d_total +0.023  d_per_review -0.0020 [-0.0023, -0.0019]  (worse per review)
+  proportional/near-threshold    0.367 [0.341, 0.376]  used  93.9%  per-review  0.0186   (reference)
+  even/near-threshold            0.340 [0.316, 0.355]  used  85.3%  per-review  0.0193   d_total -0.021  d_per_review +0.0008 [+0.0004, +0.0010]  <-- better per review
+  even/top-score                 0.229 [0.219, 0.233]  used  85.3%  per-review  0.0130   d_total -0.135  d_per_review -0.0059 [-0.0062, -0.0053]  (worse per review)
+  even/mixed                     0.315 [0.288, 0.335]  used  85.3%  per-review  0.0180   d_total -0.041  d_per_review -0.0004 [-0.0010, -0.0000]  (worse per review)
+  size-aware/near-threshold      0.373 [0.346, 0.380]  used  96.4%  per-review  0.0184   d_total +0.003  d_per_review -0.0003 [-0.0005, -0.0001]  (worse per review)
+  front-loaded/near-threshold    0.385 [0.357, 0.391]  used 100.0%  per-review  0.0182   d_total +0.014  d_per_review -0.0005 [-0.0007, -0.0003]  (worse per review)
 
 wrote results/capacity_sweep.json
 

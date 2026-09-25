@@ -1,6 +1,17 @@
 # caseload
 
-Reinforcement learning environments for **budgeted fraud investigation**: deciding where to point scarce human attention, and when, while the thing you are hunting moves.
+**Reinforcement learning environments for budgeted fraud investigation:** deciding where to point scarce human attention, and when, while the thing you are hunting moves.
+
+[![CI](https://github.com/JayeshSuryavanshi/caseload/actions/workflows/ci.yml/badge.svg)](https://github.com/JayeshSuryavanshi/caseload/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](LICENSE)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/collapse-dark.png">
+  <img src="docs/img/collapse-light.png" alt="Recall per time step for a frozen detector on Elliptic. It ranges from 33% to 88% through step 42, then drops to exactly 0% at the t=43 regime break and stays there for seven consecutive steps, against a 56% hindsight ceiling.">
+</picture>
+
+A detector frozen before a regime break does not degrade gracefully. On the Elliptic transaction graph it finds **exactly zero** illicit transactions for seven consecutive steps, while the same detector given labels from the two steps after the break recovers to **56%**. The information needed to recover exists, and it costs investigation budget to get.
 
 Two environments, one shared evaluation harness. Both are small enough that a 30-seed study runs on a laptop, which is deliberate: Patterson et al. (JMLR 2024) show 10 runs is not enough to estimate a mean reliably, so a cheap environment measured 30 times is a stronger claim than an expensive one measured 3 times.
 
@@ -25,6 +36,11 @@ On the Elliptic Bitcoin transaction graph, a gradient boosting detector fitted o
 Step 43 is a documented regime break. The detector does not degrade; it finds **exactly zero** illicit transactions for seven consecutive steps. And the information needed to recover exists: the same detector given labels from steps 43-44 reaches **56.2%** recall on 45-49 at a 10% budget, against **1.7%** frozen. Closing that gap requires spending budget on cases the broken detector ranks low.
 
 Reproduce with `python scripts/measure_collapse.py`.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/tradeoff-dark.png">
+  <img src="docs/img/tradeoff-light.png" alt="Scatter of recall before the break against recall after it. top-k sits at 95% pre-break and 4% post. Raising exploration walks left and slightly up. PPO reaches 96% pre-break and 20% post. The oracle ceiling sits alone near 100% on both axes.">
+</picture>
 
 ### Baselines, 30 seeds, IQM with 95% bootstrap CIs
 

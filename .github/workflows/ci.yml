@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install -U pip
+          pip install -e ".[dev,agents]"
+      - name: Lint
+        run: |
+          ruff check src scripts tests
+          ruff format --check src scripts tests
+      - name: Test
+        # the dataset-backed tests skip themselves when the archives are absent, which
+        # they are in CI; the drift environment needs no data so the core is covered
+        run: pytest tests -q

@@ -53,47 +53,64 @@ Building that simulator took one correction worth recording. My first version le
 
 ### What the learned policy actually did
 
-PPO trained on 320 procedural drift episodes, then evaluated on 20 held-out drift seeds and, without
-any further training, on the real Elliptic break.
+PPO trained on 1,600 procedural drift episodes per seed, six training seeds, then evaluated
+on 20 held-out drift episodes and, without further training, on the real Elliptic break.
 
-On drift it learned the behaviour the environment was built to reward: it keeps almost all of top-k's
-pre-break recall (0.941 against 0.953) while nearly doubling post-break recall (0.134 against 0.071).
-Paired against each opponent over the same 20 seeds:
+**In distribution it beats everything, including the hand-written rule.**
 
-| comparison | delta (IQM, 95% CI) | P(better) | verdict |
+| policy | overall | post-break | vs top-k |
 |---|---|---|---|
-| overall vs top-k | +0.010 [+0.001, +0.025] | 0.59 | significant, and small |
-| overall vs eps-explore(0.15) | +0.021 [+0.006, +0.033] | 0.58 | significant |
-| overall vs **yield-triggered** | +0.004 [-0.011, +0.041] | 0.59 | **not significant** |
-| post-break vs top-k | +0.042 [+0.024, +0.069] | 0.74 | significant |
-| post-break vs **eps-explore(0.6)** | **-0.043** [-0.066, -0.013] | 0.36 | **significantly worse** |
+| **ppo** | **0.655** [0.635, 0.670] | **0.197** [0.138, 0.251] | **+0.076 [+0.056, +0.091]** |
+| top-k | 0.579 | 0.042 | (reference) |
+| eps-explore(0.15) | 0.590 | 0.088 | +0.012 |
+| eps-explore(0.35) | 0.553 | 0.116 | -0.025 |
+| eps-explore(0.6) | 0.455 | 0.152 | -0.124 |
+| yield-triggered | 0.582 | 0.105 | +0.004 |
 
-So in its own training distribution the learned policy beats the industry default by about one point
-on a zero-to-one scale, never separates from a hand-written rule anyone could write in an afternoon,
-and is beaten post-break by the crudest possible policy, which simply always spends 60% of its budget
-on exploration.
+Paired against the hand-written adaptive rule: **+0.073 [+0.053, +0.088]**, so it clears it.
+Post-break it finds 4.7x what top-k finds.
 
-**And it does not transfer.** Zero-shot on Elliptic's real regime break, 15 rounds, break at round 8:
+Read those intervals correctly. The baselines are deterministic and do not depend on the
+training seed, so their intervals are degenerate; the interval on `ppo` is its **seed
+variance**, which answers "does the method reliably beat the baseline" rather than giving an
+episode-level interval.
+
+**Zero-shot on the real break, the advantage mostly evaporates.**
 
 | policy | overall | pre-break | post-break |
 |---|---|---|---|
-| ppo | 0.718 | 0.843 | **0.043** |
-| top-k | **0.730** | 0.851 | 0.077 |
+| ppo | 0.737 [0.709, 0.785] | 0.844 | 0.156 **[0.063, 0.440]** |
+| top-k | 0.730 | 0.851 | 0.077 |
 | eps-explore(0.15) | 0.720 | 0.837 | 0.089 |
 | eps-explore(0.35) | 0.713 | 0.803 | 0.223 |
 | eps-explore(0.6) | 0.690 | 0.714 | **0.560** |
 | yield-triggered | 0.712 | 0.801 | 0.231 |
 | oracle ceiling | 1.000 | 1.000 | 1.000 |
 
-On the real break the learned policy is worse than plain top-k overall, and its post-break recall of
-0.043 is **thirteen times worse** than the fixed 60%-exploration rule's 0.560. Whatever it learned to
-recognise in the simulator, the real collapse does not present it. Holding Elliptic out was therefore
-the load-bearing design decision in this repository: training on it would have produced a number that
-looked like a win.
+It is ahead of top-k overall by 0.006, on four of six seeds. Post-break it doubles top-k,
+but it is **worse than the hand-written rule** by 0.075 and **3.6x behind** the one-line
+always-explore policy. And its post-break recall ranges from **0.063 to 0.440** across
+training seeds, a 7x spread, so on the real break its behaviour is close to a lottery.
 
-The honest summary is that this environment is not solved, the oracle sits 27 points above the best
-policy even on Elliptic, and the current state of the art on it is a one-line heuristic.
+So the honest statement is narrower than either "RL works here" or "RL does not". The
+learned policy reliably beats every baseline **on the simulator it trained on**, and that
+advantage does not survive contact with the real regime break, where a one-line heuristic
+still wins by a wide margin. More training bought in-distribution skill, not transfer.
 
+Holding Elliptic out is what makes that visible. Training on its single trajectory would
+have produced a number that looked like a win.
+
+### A correction to an earlier version of this README
+
+An earlier commit reported that PPO "does not transfer" and, separately, that it never
+separated from the hand-written rule in distribution. The second half was wrong, and wrong
+for a reason worth recording: that run was **320 episodes on one seed**, which is not a
+serious training run. At 1,600 episodes across six seeds the in-distribution picture
+inverts and PPO clears every baseline.
+
+The transfer finding survived the larger run, but in a sharper form than originally stated,
+and the original framing would have misled a reader about why. If you are citing a number
+from this repository, take it from this section rather than from the commit history.
 ---
 
 ## 2. Capacity-constrained triage on FiFAR (`caseload.envs.fifar`, `caseload.triage`)

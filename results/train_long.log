@@ -193,3 +193,19 @@ update 190  recall 0.610  entropy 1.320  kl 0.0798  5798s
 update 191  recall 0.628  entropy 0.864  kl 0.0307  5846s
 update 192  recall 0.654  entropy 1.408  kl 0.0726  5895s
 update 193  recall 0.651  entropy 1.225  kl 0.0367  5943s
+update 194  recall 0.624  entropy 1.233  kl 0.0298  6010s
+update 195  recall 0.612  entropy 1.358  kl 0.0223  6063s
+update 196  recall 0.634  entropy 1.217  kl 0.0219  6116s
+update 197  recall 0.590  entropy 1.162  kl 0.0230  6192s
+update 198  recall 0.628  entropy 1.215  kl 0.0211  6269s
+update 199  recall 0.633  entropy 1.442  kl 0.0212  6392s
+
+saved results/ppo_s0.pt
+
+held-out drift seeds (not used in training):
+  ppo                        recall 0.641 +/- 0.050
+  top-k                      recall 0.570 +/- 0.098
+  yield-triggered(drop=0.5)  recall 0.594 +/- 0.085
+########## seed 0 done 23:33:17 ##########
+########## seed 1 starting 23:33:17 ##########
+update   0  recall 0.421  entropy 3.209  kl 0.0346  40s

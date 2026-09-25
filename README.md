@@ -4,11 +4,12 @@
 
 [![CI](https://github.com/JayeshSuryavanshi/caseload/actions/workflows/ci.yml/badge.svg)](https://github.com/JayeshSuryavanshi/caseload/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/caseload.svg)](https://pypi.org/project/caseload/)
+[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](https://github.com/JayeshSuryavanshi/caseload/blob/main/LICENSE)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/collapse-dark.png">
-  <img src="docs/img/collapse-light.png" alt="Two panels. Left: per-step recall at a 2% budget for a detector frozen on Elliptic steps 1-34. It runs between 36% and 91% through step 42. After the dark-market shutdown at step 43 it finds 2 of 169 illicit transactions over steps 43-49, and five of the seven steps are at zero (step 46 reads 50% because it has only two illicit transactions). Right: recall on steps 45-49 by budget. A detector refitted on labels up to step 44 climbs to 50% at a 10% budget and 77% at 20%, while the frozen detector stays under 6% and random picks reach 27% at 20%.">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JayeshSuryavanshi/caseload/main/docs/img/collapse-dark.png">
+  <img src="https://raw.githubusercontent.com/JayeshSuryavanshi/caseload/main/docs/img/collapse-light.png" alt="Two panels. Left: per-step recall at a 2% budget for a detector frozen on Elliptic steps 1-34. It runs between 36% and 91% through step 42. After the dark-market shutdown at step 43 it finds 2 of 169 illicit transactions over steps 43-49, and five of the seven steps are at zero (step 46 reads 50% because it has only two illicit transactions). Right: recall on steps 45-49 by budget. A detector refitted on labels up to step 44 climbs to 50% at a 10% budget and 77% at 20%, while the frozen detector stays under 6% and random picks reach 27% at 20%.">
 </picture>
 
 A detector frozen before a regime break does not degrade gracefully. On the Elliptic Bitcoin transaction graph (Weber et al., 2019), a detector fitted on steps 1-34 finds 36% to 91% of each step's illicit transactions up to step 42. After the dark-market shutdown at step 43 it finds **2 of the 169** illicit transactions in steps 43-49. Given every label up to step 44, including the two steps after the break, the same detector refitted finds **49.6%** of the illicit transactions in steps 45-49 at a 10% budget, against **3.3%** for the frozen one. The information needed to recover exists, and getting it costs investigation budget.
@@ -50,8 +51,8 @@ Recall on steps 45-49 (121 illicit transactions). Scored on every labelled trans
 Reproduce with `python scripts/fetch_elliptic.py --convert <dir>` and then `python scripts/measure_collapse.py`, which writes `results/collapse.log` and `results/collapse.json` in about 25 s on a laptop and prints the archive's sha256 to check against the committed one. The numbers are sensitive to the last bits of the features: an archive parsed with a different float routine moves them slightly, which is why the converter parses deterministically and the sha256 is recorded.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/tradeoff-dark.png">
-  <img src="docs/img/tradeoff-light.png" alt="Scatter of recall before the break against recall after it, IQM over six training seeds on held-out drift episodes. top-k sits at 97% before and 4% after. More exploration walks left and slightly up, ending with eps-explore(0.6) at 69% before and 15% after. The yield-triggered rule sits at 95% and 11%. PPO sits at 97% before and 20% after, with a seed interval of 14% to 25% post-break. The top-right corner is empty.">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/JayeshSuryavanshi/caseload/main/docs/img/tradeoff-dark.png">
+  <img src="https://raw.githubusercontent.com/JayeshSuryavanshi/caseload/main/docs/img/tradeoff-light.png" alt="Scatter of recall before the break against recall after it, IQM over six training seeds on held-out drift episodes. top-k sits at 97% before and 4% after. More exploration walks left and slightly up, ending with eps-explore(0.6) at 69% before and 15% after. The yield-triggered rule sits at 95% and 11%. PPO sits at 97% before and 20% after, with a seed interval of 14% to 25% post-break. The top-right corner is empty.">
 </picture>
 
 ### Baselines, 30 seeds, IQM with 95% bootstrap CIs
@@ -207,10 +208,10 @@ Several of the results above were wrong before they were right, and each correct
 ## Install
 
 ```bash
-pip install "caseload[agents,fifar] @ git+https://github.com/JayeshSuryavanshi/caseload"
+pip install "caseload[agents,fifar]"
 ```
 
-or, from a clone:
+or the latest code from GitHub, `pip install "caseload[agents,fifar] @ git+https://github.com/JayeshSuryavanshi/caseload"`, or from a clone:
 
 ```bash
 pip install -e '.[agents,fifar]'

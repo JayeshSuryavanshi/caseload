@@ -18,6 +18,8 @@ Two environments, one shared evaluation harness. Both are small enough that the 
 
 Every result below is read from a file under `results/` that a script in this repository wrote, or is printed by a script from those files; [Reproducing](#reproducing) gives the command for each. Where a result is negative, or where my own first attempt was wrong, that is written down rather than removed.
 
+The write-up of how this went, including the two results that reversed under scrutiny, is [**The simulator was the experiment**](https://www.jayeshsuryavanshi.com/blog/simulator-was-the-experiment.html).
+
 ---
 
 ## 1. Selective labels under a regime break (`caseload.envs.drift`, `caseload.envs.elliptic`)
@@ -286,6 +288,7 @@ python scripts/aggregate_fleet.py results/fleet > results/fleet_aggregate.log
 
 ## Related work
 
+- **Write-up.** [The simulator was the experiment](https://www.jayeshsuryavanshi.com/blog/simulator-was-the-experiment.html) is the narrative version: why the collapse motivates a sequential formulation, how the drift simulator had to be made adversarial before exploration mattered, and why a policy that dominates that simulator across six seeds still loses to a one-line heuristic on the real break.
 - **Selective labels and partial feedback.** Lakkaraju et al. (KDD 2017) define the selective-labels problem, where the outcome is only observed for the cases a decision lets through. Kilbertus et al. (AISTATS 2020) show that in this setting a predictor learned only from the labelled data is suboptimal, and argue for learning decision policies, with an explicit link to the explore/exploit trade-off in RL. In fraud specifically, Dal Pozzolo et al. (TNNLS 2018) formalise the operating conditions of a real fraud-detection system, including verification latency, where only a small set of transactions is checked by investigators in time to supply labels. caseload is an RL benchmark instance of these problems: the investigation budget is the only source of labels, and the break makes it costly to spend that budget only where the detector is confident.
 - **Monitored MDPs** (Parisi et al., AAMAS 2024) formalise environments where the reward exists whether or not the agent observes it. The drift environment is one, with observation paid for from the same budget as exploitation.
 - **Tong et al.** (AAAI 2020) learn alert-prioritisation policies with adversarial RL, against attackers who adapt to the defender's policy, with case studies in fraud and intrusion detection. The adversarial break in `caseload.envs.drift` is a much simpler version of the same idea: the new fraud mode goes where the current detector is not looking.
